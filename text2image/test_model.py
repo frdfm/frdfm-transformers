@@ -3,9 +3,9 @@ from pathlib import Path
 import unittest
 import torch
 from PIL import Image
-from test2image.model import ImageTransformer, encode_prompt, CLASSES, TEMPLATES, PREFIX, PIXELS, LEVELS
-from test2image.train import pixel_loss
-from test2image.generate import save_grid
+from text2image.model import ImageTransformer, encode_prompt, CLASSES, TEMPLATES, PREFIX, PIXELS, LEVELS
+from text2image.train import pixel_loss
+from text2image.generate import save_grid
 
 
 class ModelTests(unittest.TestCase):
