@@ -30,6 +30,35 @@ def encode(text):
     return ids + [PAD] * (MAX_TEXT - len(ids))
 
 
+CLAUSES, CLAUSE_TEXT = 5, 6
+
+
+def encode_clauses(text):
+    """Syntax-only segmentation, no body-part/state interpretation."""
+    clauses = text.lower().split(";")
+    if len(clauses) != CLAUSES:
+        raise ValueError("Provide exactly five semicolon-separated clauses, one per body part")
+    rows = []
+    for clause in clauses:
+        ids = [CLS] + encode(clause)[1:]
+        ids = [i for i in ids if i != PAD]
+        if len(ids) > CLAUSE_TEXT:
+            raise ValueError("Each clause must contain at most five words")
+        rows.append(ids + [PAD] * (CLAUSE_TEXT - len(ids)))
+    return rows
+
+
+def clause_supervision(records):
+    """Training-only labels from our synthetic annotation schema, never used by generation."""
+    parts, values = [], []
+    dictionary = {f"{part} {state}": i for i, (part, states) in enumerate(zip(PARTS, STATES)) for state in states}
+    for record in records:
+        identities = [dictionary[c.strip()] for c in record["caption"].split(";")]
+        parts.append(identities)
+        values.append([record["target"][i] for i in identities])
+    return parts, values
+
+
 def describe(combo, rng=None):
     clauses = [f"{part} {states[state]}" for part, states, state in zip(PARTS, STATES, combo)]
     if rng is not None:

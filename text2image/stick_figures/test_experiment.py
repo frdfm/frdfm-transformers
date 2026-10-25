@@ -30,6 +30,37 @@ class ExperimentTests(unittest.TestCase):
         self.assertIn((2,2,0,0,0), sets["test"])
         self.assertNotIn((2,2,0,0,0), sets["train"])
 
+    def test_factorized_routing_and_clause_permutation(self):
+        from text2image.stick_figures.data import encode_clauses, clause_supervision
+        from text2image.stick_figures.model import FactorizedPoseTransformer
+        from unittest.mock import patch
+        torch.set_num_threads(2)
+        text = describe((2, 2, 0, 0, 0))
+        clauses = text.split(" ; ")
+        model = FactorizedPoseTransformer(width=16, layers=1, heads=2).eval()
+        tokens = torch.tensor([encode_clauses(text)])
+        shuffled = torch.tensor([encode_clauses(" ; ".join(reversed(clauses)))])
+        # Inference does not call training-label construction.
+        with patch("text2image.stick_figures.data.clause_supervision", side_effect=AssertionError("Training-only labels used")):
+            a, identity, angles = model.details(tokens)
+            b = model(shuffled)
+        self.assertEqual(a.shape, (1,5))
+        self.assertEqual(identity.shape, (1,5,5))
+        self.assertEqual(angles.shape, (1,5))
+        torch.testing.assert_close(a,b,atol=1e-6,rtol=1e-5)
+        # Altering another clause cannot change this clause's own local encoding/head outputs.
+        changed = torch.tensor([encode_clauses(describe((2, 2, 1, 0, 0)))])
+        _, new_identity, new_angles = model.details(changed)
+        torch.testing.assert_close(identity[:,0],new_identity[:,0],atol=1e-6,rtol=1e-5)
+        torch.testing.assert_close(angles[:,0],new_angles[:,0],atol=1e-6,rtol=1e-5)
+        parts, values = clause_supervision([{"caption":text,"target":target((2,2,0,0,0))}])
+        self.assertEqual(parts, [[0,1,2,3,4]])
+        self.assertEqual(values, [[1.0,1.0,0.0,0.0,0.0]])
+        (a.square().mean() + identity.square().mean() + angles.square().mean()).backward()
+        self.assertIsNotNone(model.embed.weight.grad)
+        with self.assertRaises(ValueError):
+            encode_clauses("left arm raised")
+
     def test_skeleton_and_model_shapes(self):
         torch.set_num_threads(2)
         for combo in COMBINATIONS:

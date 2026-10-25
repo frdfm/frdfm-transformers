@@ -36,7 +36,7 @@ Create a sibling package such as `text2image/<dataset_name>/`, with its own READ
 
 ```powershell
 python -m text2image.stick_figures.data
-python -m text2image.stick_figures.train --steps 2000 --seeds 7 11 23
+python -m text2image.stick_figures.train --architecture factorized --steps 1000 --seeds 7 11 23
 ```
 
 This experiment enumerates all 108 defined pose combinations. Training contains 84; validation and test each reserve 12 combinations including an entire unseen component pairing. The Transformer predicts pose controls, and a fixed renderer draws them. See its README for what this establishes and the structural assumptions it supplies.
