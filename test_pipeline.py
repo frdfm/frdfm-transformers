@@ -42,6 +42,80 @@ class PipelineTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 check_data(data)
 
+    def test_absolute_learning_rate(self):
+        from train import learning_rate_at_step, LEARNING_RATE
+        self.assertAlmostEqual(learning_rate_at_step(1), 5e-7)
+        self.assertAlmostEqual(learning_rate_at_step(1000), LEARNING_RATE)
+        self.assertAlmostEqual(learning_rate_at_step(5000), 2.2360679774997898e-4)
+        self.assertAlmostEqual(learning_rate_at_step(10000), 1.5811388300841897e-4)
+        self.assertLess(learning_rate_at_step(1001), learning_rate_at_step(1000))
+        self.assertLess(learning_rate_at_step(5001), learning_rate_at_step(5000))
+        self.assertLess(learning_rate_at_step(10001), learning_rate_at_step(10000))
+        with self.assertRaises(ValueError):
+            learning_rate_at_step(0)
+
+    def test_training_loop_resume(self):
+        import train
+        torch.set_num_threads(2)
+        rows = torch.tensor([[4, 5, EOS, PAD], [6, EOS, PAD, PAD]])
+        with tempfile.TemporaryDirectory() as folder:
+            checkpoint = str(Path(folder) / "model.pt")
+            logfile = str(Path(folder) / "train.log")
+            with patch.multiple(train, CKPT_FILE=checkpoint, LOG_FILE=logfile,
+                                DEVICE="cpu", USE_BF16=False, BATCH_SIZE=2,
+                                EVAL_BATCH=2, EVAL_INTERVAL=1), \
+                    patch.object(train, "check_data"), \
+                    patch.object(train, "tokenizer_digest", return_value="test-tokenizer"), \
+                    patch.object(train, "load_pairs", return_value=(rows, rows)), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                with patch.object(sys, "argv", ["train.py", "--steps", "1"]):
+                    train.main()
+                with patch.object(sys, "argv", ["train.py", "--resume", "--steps", "1"]):
+                    train.main()
+            state = torch.load(checkpoint, weights_only=True, map_location="cpu")
+            self.assertEqual(state["step"], 2)
+            self.assertIn("optimizer", state)
+            self.assertEqual(state["lr_schedule"]["name"], "inverse_sqrt")
+            self.assertAlmostEqual(state["optimizer"]["param_groups"][0]["lr"], train.learning_rate_at_step(2))
+            lines = Path(logfile).read_text().splitlines()
+            self.assertEqual(len(lines), 3)
+            self.assertEqual([line.split()[0] for line in lines[1:]], ["1", "2"])
+
+    def test_resume_matches_uninterrupted_training(self):
+        from train import save_checkpoint, restore_checkpoint
+        torch.manual_seed(42)
+        np.random.seed(42)
+        model = torch.nn.Linear(3, 2)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+
+        def update(net, opt):
+            x = torch.randn(4, 3) + float(np.random.random())
+            opt.zero_grad()
+            net(x).square().mean().backward()
+            opt.step()
+
+        update(model, optimizer)
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "model.pt"
+            save_checkpoint(path, model, optimizer, 5001, 12.0, "test-tokenizer")
+            update(model, optimizer)
+            expected = {k: v.clone() for k, v in model.state_dict().items()}
+            resumed = torch.nn.Linear(3, 2)
+            resumed_optimizer = torch.optim.AdamW(resumed.parameters(), lr=0.1)
+            result = restore_checkpoint(path, resumed, resumed_optimizer, "test-tokenizer")
+            self.assertEqual(result, (5001, 12.0))
+            update(resumed, resumed_optimizer)
+            for key, value in resumed.state_dict().items():
+                torch.testing.assert_close(value, expected[key], rtol=0, atol=0)
+            with self.assertRaises(ValueError):
+                restore_checkpoint(path, resumed, resumed_optimizer, "wrong-tokenizer")
+            torch.save({"model": expected, "format_version": 2,
+                        "tokenizer_sha256": "test-tokenizer"}, path)
+            with self.assertRaises(ValueError):
+                restore_checkpoint(path, resumed, resumed_optimizer, "test-tokenizer")
+            self.assertEqual(restore_checkpoint(path, resumed, resumed_optimizer,
+                                              "test-tokenizer", 5000), (5000, 0.0))
+
     def test_padding_invariance_and_first_token_gradient(self):
         torch.set_num_threads(2)
         torch.manual_seed(7)

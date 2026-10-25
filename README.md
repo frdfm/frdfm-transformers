@@ -122,7 +122,7 @@ The loop ([train.py](train.py)) has no framework: it's a textbook training loop 
 | `BATCH_SIZE` | 192 sampled at random, *with replacement* (no epochs) |
 | `total_steps` | 5,000 |
 | `LEARNING_RATE` | 5e-4 peak |
-| `WARMUP_STEPS` | 100 |
+| `WARMUP_STEPS` | 1000 |
 | `GRAD_CLIP` | 1.0 global norm |
 | optimizer | AdamW(β=(0.9, 0.95), eps=1e-8) |
 | precision | bf16 forward on CUDA, fp32 loss + optimizer; TF32 on |
@@ -148,10 +148,10 @@ Rows get trimmed to the longest real sentence in the batch; a 34-token batch doe
 ## The walking pace (the LR schedule)
 
 ```python
-lr = LEARNING_RATE * min(1.0, (step + 1) / WARMUP_STEPS)
+lr = learning_rate_at_step(step + 1)
 ```
 
-Learning rate = how big each corrective step is. The model starts as an infant: take tiny steps (linear warmup, ~0 → 5e-4 over 100 steps) precisely because the post-LN stack from Part 1 is unstable before its norms settle in. After that: **a steady 5e-4, forever.** No decay — this is a fixed 5,000-step sprint, so it's a straight road, not a cosine hill.
+Learning rate controls the size of each update. It rises linearly to `5e-4` over the first 1,000 absolute steps, then decreases with the inverse square root of the step number. Resuming preserves the absolute step, so neither warmup nor decay restarts.
 
 The value is written by hand into `optimizer.param_groups[0]["lr"]` each step; AdamW uses whatever the current group LR is on `optimizer.step()`.
 
@@ -163,7 +163,7 @@ Every **10 steps** (500 times total): a no-grades pass over all 4,000 unseen val
 
 ```python
 for step in range(5_000):
-    optimizer.param_groups[0]["lr"] = 5e-4 * min(1.0, (step + 1) / 100)
+    optimizer.param_groups[0]["lr"] = learning_rate_at_step(step + 1)
     src, tgt = get_batch(...)          # 192 random pairs
     src, tgt = trim_batch(src, tgt)
     tgt_in = torch.cat([torch.full_like(tgt[:, :1], BOS), tgt[:, :-1]], dim=1)
@@ -182,3 +182,33 @@ for step in range(5_000):
 # Inference
 
 [translate.py](translate.py) appends source EOS, encodes the source once, seeds the target with `[BOS]`, and decodes greedily. Training uses the same BOS prefix, so the first output token is explicitly supervised. PAD and BOS are suppressed during generation.
+
+## Continuing training
+
+`--steps` specifies additional updates, not the final step number. To continue a checkpoint created before resume support after 5,000 updates:
+
+```bash
+python train.py --resume --start-step 5000 --steps 5000
+```
+
+This restores its weights, starts a fresh optimizer with the learning rate for absolute step 5,001, and logs steps 5,001 through 10,000. Later checkpoints contain the optimizer, step, LR schedule configuration, elapsed training time, and random generator states. Continue those with:
+
+```bash
+python train.py --resume --steps 5000
+```
+
+Resume appends to `logs/train.log`. Running without `--resume` still starts fresh. Checkpoints remain compatible with `translate.py`.
+
+### Learning rate across resumes
+
+The schedule uses the one-based absolute update number `s`:
+
+```python
+lr = 5e-4 * min(s / 1000, (1000 / s) ** 0.5)
+```
+
+It warms up once over steps 1-1,000, then decays without needing a final training step. LR is about `2.24e-4` at step 5,000 and `1.58e-4` at step 10,000. Resuming never restarts warmup or decay; `--steps` only controls how many more updates run.
+
+Older checkpoints were trained with a constant LR after warmup. On their first resume with this code, the LR switches to the new schedule at the absolute step; this does not retroactively change earlier training. New checkpoints record the schedule configuration and reject an accidental configuration mismatch.
+
+For the 1,000-step warmup configuration, start fresh with `python train.py --steps 10000` (or choose another update count). Existing prepared data can be reused; the new run replaces the checkpoint and training log. Checkpoints with a saved 100-step schedule are incompatible with this configuration.
