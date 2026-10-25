@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from pipeline import MAX_LEN, VOCAB_SIZE, PAD
+from en2fr.pipeline import MAX_LEN, VOCAB_SIZE, PAD
 
 D_MODEL = 256
 N_HEADS = 8

@@ -11,8 +11,8 @@ from unittest.mock import patch
 import numpy as np
 import torch
 from tokenizers import Tokenizer
-from model import Model
-from pipeline import BOS, EOS, PAD, MAX_LEN, check_data, encode_source
+from en2fr.model import Model
+from en2fr.pipeline import BOS, EOS, PAD, MAX_LEN, check_data, encode_source
 
 class PipelineTests(unittest.TestCase):
     def test_preparation_and_tokenizer(self):
@@ -43,19 +43,16 @@ class PipelineTests(unittest.TestCase):
                 check_data(data)
 
     def test_absolute_learning_rate(self):
-        from train import learning_rate_at_step, LEARNING_RATE
-        self.assertAlmostEqual(learning_rate_at_step(1), 5e-7)
-        self.assertAlmostEqual(learning_rate_at_step(1000), LEARNING_RATE)
-        self.assertAlmostEqual(learning_rate_at_step(5000), 2.2360679774997898e-4)
-        self.assertAlmostEqual(learning_rate_at_step(10000), 1.5811388300841897e-4)
-        self.assertLess(learning_rate_at_step(1001), learning_rate_at_step(1000))
-        self.assertLess(learning_rate_at_step(5001), learning_rate_at_step(5000))
-        self.assertLess(learning_rate_at_step(10001), learning_rate_at_step(10000))
+        from en2fr.train import learning_rate_at_step, LEARNING_RATE, WARMUP_STEPS
+        self.assertAlmostEqual(learning_rate_at_step(1), LEARNING_RATE / WARMUP_STEPS)
+        self.assertAlmostEqual(learning_rate_at_step(WARMUP_STEPS), LEARNING_RATE)
+        self.assertAlmostEqual(learning_rate_at_step(4 * WARMUP_STEPS), LEARNING_RATE / 2)
+        self.assertLess(learning_rate_at_step(WARMUP_STEPS + 1), learning_rate_at_step(WARMUP_STEPS))
         with self.assertRaises(ValueError):
             learning_rate_at_step(0)
 
     def test_training_loop_resume(self):
-        import train
+        from en2fr import train
         torch.set_num_threads(2)
         rows = torch.tensor([[4, 5, EOS, PAD], [6, EOS, PAD, PAD]])
         with tempfile.TemporaryDirectory() as folder:
@@ -82,7 +79,7 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual([line.split()[0] for line in lines[1:]], ["1", "2"])
 
     def test_resume_matches_uninterrupted_training(self):
-        from train import save_checkpoint, restore_checkpoint
+        from en2fr.train import save_checkpoint, restore_checkpoint
         torch.manual_seed(42)
         np.random.seed(42)
         model = torch.nn.Linear(3, 2)

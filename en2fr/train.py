@@ -14,8 +14,8 @@ CKPT_FILE = os.path.join(HERE, "checkpoints", "model.pt")
 os.makedirs(os.path.join(HERE, "logs"), exist_ok=True)
 os.makedirs(os.path.join(HERE, "checkpoints"), exist_ok=True)
 
-from model import Model
-from pipeline import MAX_LEN, VOCAB_SIZE, BOS, check_data, tokenizer_digest
+from en2fr.model import Model
+from en2fr.pipeline import MAX_LEN, VOCAB_SIZE, BOS, check_data, tokenizer_digest
 
 BATCH_SIZE = 192
 EVAL_INTERVAL = 10
