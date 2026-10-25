@@ -1,14 +1,18 @@
 # An English → French Transformer, built from scratch
 
-A complete EN→FR translator in ~200 lines of PyTorch — no `nn.Transformer`, no training framework. This README explains it top-down: one box at a time, each opening only boxes the previous step introduced.
+A complete EN→FR translator in a compact PyTorch implementation — no `nn.Transformer`, no training framework. This README explains it top-down: one box at a time, each opening only boxes the previous step introduced.
 
 ```bash
-python prepare_data.py   # opus-100 en-fr (~1M pairs), shared 16k BPE, data/*.bin
+python prepare_data.py   # opus-100 en-fr (filters long pairs), shared 16k byte-level BPE, data/*.bin
 python train.py          # 5,000 steps, ~16.6M params
 python translate.py "the weather is nice today"
 ```
 
-Data facts used below: sentences are BPE-tokenized to at most **60 tokens**, `PAD = 0`, `EOS = 1`, vocab = **16,000** ([prepare_data.py](prepare_data.py)).
+Data facts used below: sentences are BPE-tokenized to at most **60 tokens**, `PAD = 0`, `EOS = 1`, `BOS = 2`, vocab = **16,000** ([prepare_data.py](prepare_data.py)).
+
+The corrected pipeline uses ByteLevel BPE with its matching decoder and full byte alphabet. It filters out a whole pair if either side exceeds 59 content tokens, then appends EOS. Encoder self-attention masks source padding. Shared architecture lives in `model.py`; token IDs and input checks live in `pipeline.py`.
+
+**Migration:** existing data and checkpoints use an incompatible format. Run `prepare_data.py`, then `train.py` before translating. These commands replace the generated data and checkpoint files. Metadata and a tokenizer hash prevent using an old checkpoint with the new tokenizer.
 
 ---
 
@@ -21,7 +25,7 @@ Shapes use one running example: English = 6 tokens + EOS, French = 5 tokens + EO
 ```
               ┌─────────────────────────────────────┐
  EN ids ──────▶   "score the next French token"     ──────▶ FR logits
- (1, 7)                                                 (1, 5, 16000)
+ (1, 7)                                                 (1, 6, 16000)
               └─────────────────────────────────────┘
 ```
 
@@ -40,7 +44,7 @@ Zoom constants for the rest of the tour:
 
 ## Step 2 — Open the box: a reading room, a writing room, one bridge
 
-`Model.forward` ([train.py:106-113](train.py#L106-L113)) is literally three lines:
+`Model.forward` ([model.py](model.py)) is literally three lines:
 
 ```python
 src_pad_mask = src == 0
@@ -67,7 +71,7 @@ One sneak preview of the endings: the decoder's final "score every vocab word" l
 Each of the 4 blocks (in *each* room) is the same three-move routine:
 
 ```python
-attn_out, _ = self.self_attn(h, h, h, attn_mask=attn_mask)
+attn_out, _ = self.self_attn(h, h, h, attn_mask=attn_mask, key_padding_mask=src_pad_mask if memory is None else None)
 h = self.ln_1(h + attn_out)                                  # ① mix
 if memory is not None:                                       # encoder skips this
     attn_out, _ = self.cross_attn(h, memory, memory, key_padding_mask=src_pad_mask)
@@ -111,7 +115,7 @@ Roughly half the parameters are just the two dictionary tables — at this scale
 
 # Part 2 — Training: how it learned, in plain terms
 
-The loop ([train.py:178-215](train.py#L178-L215)) has no framework: it's a textbook training loop you can read top to bottom.
+The loop ([train.py](train.py)) has no framework: it's a textbook training loop you can read top to bottom.
 
 | Constant | Value |
 |---|---|
@@ -128,8 +132,8 @@ The loop ([train.py:178-215](train.py#L178-L215)) has no framework: it's a textb
 Every step: take 192 random English/French sentence pairs, and quiz the model — French grammar is hidden, French token *i* is shown to it, and it must guess token *i+1*:
 
 ```python
-tgt_in  = tgt[:, :-1]                   # input: French tokens 0..T-2
-target  = ids_to_matchable(tgt[:, 1:])  # the answers; PAD → -100 (don't grade)
+tgt_in = torch.cat([torch.full_like(tgt[:, :1], BOS), tgt[:, :-1]], dim=1)
+target = ids_to_matchable(tgt)  # predict every French token, including the first and EOS
 loss    = F.cross_entropy(logits.float().reshape(-1, 16000), target.reshape(-1))
 ```
 
@@ -162,10 +166,10 @@ for step in range(5_000):
     optimizer.param_groups[0]["lr"] = 5e-4 * min(1.0, (step + 1) / 100)
     src, tgt = get_batch(...)          # 192 random pairs
     src, tgt = trim_batch(src, tgt)
-    tgt_in = tgt[:, :-1]               # cheat: we know the French so far
+    tgt_in = torch.cat([torch.full_like(tgt[:, :1], BOS), tgt[:, :-1]], dim=1)
     with torch.autocast(DEVICE, dtype=torch.bfloat16, enabled=USE_BF16):
         logits = model(src, tgt_in)
-    loss = F.cross_entropy(logits.float().reshape(-1, 16000), ids_to_matchable(tgt[:, 1:]).reshape(-1))
+    loss = F.cross_entropy(logits.float().reshape(-1, 16000), ids_to_matchable(tgt).reshape(-1))
     optimizer.zero_grad(set_to_none=True)
     loss.backward()                    # outside autocast, per PyTorch convention
     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)   # don't overcorrect
@@ -177,4 +181,4 @@ for step in range(5_000):
 
 # Inference
 
-[translate.py](translate.py) encodes the source once, seeds the target with `[EOS]` (stand-in BOS), and decodes **greedily**: always take the single most likely next token, append it, re-ask — an innocent strategy that works because training made `EOS` a real, learnable target (Part 2's exam explicitly grades it).
+[translate.py](translate.py) appends source EOS, encodes the source once, seeds the target with `[BOS]`, and decodes greedily. Training uses the same BOS prefix, so the first output token is explicitly supervised. PAD and BOS are suppressed during generation.
