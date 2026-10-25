@@ -7,8 +7,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from text2image.model import ImageTransformer, CLASSES, TEMPLATES, PREFIX, encode_prompt
-from text2image.generate import save_grid
+from text2image.fashion_mnist.model import ImageTransformer, CLASSES, TEMPLATES, PREFIX, encode_prompt
+from text2image.fashion_mnist.generate import save_grid
 
 HERE = Path(__file__).resolve().parent
 
@@ -17,7 +17,7 @@ def load_data(split, side=28):
     folder = HERE / "data" if side == 14 else HERE / "data" / str(side)
     path = folder / f"{split}.npz"
     if not path.exists():
-        raise FileNotFoundError(f"Prepare data first: python -m text2image.prepare_data --size {side}")
+        raise FileNotFoundError(f"Prepare data first: python -m text2image.fashion_mnist.prepare_data --size {side}")
     with np.load(path) as data:
         if data["pixels"].shape[1] != side * side:
             raise ValueError("Data resolution does not match --size")
