@@ -4,7 +4,7 @@ import os
 import numpy as np
 from datasets import load_dataset
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
-from pipeline import MAX_LEN, VOCAB_SIZE, PAD, EOS, BOS, tokenizer_digest
+from en2fr.pipeline import MAX_LEN, VOCAB_SIZE, PAD, EOS, BOS, tokenizer_digest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(HERE, "data")

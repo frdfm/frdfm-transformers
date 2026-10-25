@@ -4,8 +4,8 @@ import sys
 import torch
 from tokenizers import Tokenizer
 
-from model import Model
-from pipeline import MAX_LEN, PAD, EOS, BOS, check_data, encode_source, tokenizer_digest
+from en2fr.model import Model
+from en2fr.pipeline import MAX_LEN, PAD, EOS, BOS, check_data, encode_source, tokenizer_digest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(HERE, "data")
@@ -21,7 +21,7 @@ def main():
     state = torch.load(CKPT_FILE, map_location=DEVICE, weights_only=True)
     if (state.get("format_version") != 2
             or state.get("tokenizer_sha256") != tokenizer_digest(DATA_DIR)):
-        raise ValueError("Incompatible checkpoint: retrain with train.py after preparing data.")
+        raise ValueError("Incompatible checkpoint: retrain with python -m en2fr.train after preparing data.")
     model = Model().to(DEVICE)
     model.load_state_dict(state["model"])
     model.eval()
