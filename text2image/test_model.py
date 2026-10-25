@@ -37,6 +37,29 @@ class ModelTests(unittest.TestCase):
         self.assertTrue(torch.isfinite(loss))
         self.assertGreater(model.embed.weight.grad.abs().sum().item(), 0)
 
+    def test_two_example_masks_and_loss_selection(self):
+        from text2image.trace_batch import attention_probe
+        model = ImageTransformer(width=16, layers=1, heads=2, side=28).eval()
+        captions = torch.tensor([encode_prompt("draw a bag"), encode_prompt("a grayscale image of a coat")])
+        pixels = torch.zeros((2, 784), dtype=torch.long)
+        pixels[0, 41], pixels[1, 10] = 4, 6
+        tokens = torch.cat([captions, pixels[:, :-1]], dim=1)
+        h = model.blocks[0].norm1(model.embed(tokens) + model.position.weight[:793])
+        with torch.no_grad():
+            rows = attention_probe(model.blocks[0].attention, h, tokens, [9, 10])
+        self.assertEqual([rows[f"example_{b}_head_0_query_{q}"]["allowed_key_count"]
+                          for b in range(2) for q in [9, 10]], [3, 4, 6, 7])
+        logits = model(tokens)
+        logits.retain_grad()
+        selected = logits[:, 9:]
+        losses = torch.nn.functional.cross_entropy(selected.reshape(-1, 16), pixels.reshape(-1), reduction="none")
+        self.assertEqual(losses.numel(), 1568)
+        self.assertTrue(torch.all(losses > 0))  # Black pixels are graded, not ignored.
+        torch.testing.assert_close(losses.mean(), pixel_loss(model, captions, pixels))
+        losses.mean().backward()
+        self.assertTrue(torch.all(logits.grad[:, :9] == 0))
+        self.assertGreater(logits.grad[:, 9].abs().sum().item(), 0)
+
     def test_native_resolution(self):
         model = ImageTransformer(width=16, layers=1, heads=2, side=28).eval()
         captions = torch.tensor([encode_prompt("draw a bag")])
