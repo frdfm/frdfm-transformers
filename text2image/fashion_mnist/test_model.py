@@ -3,9 +3,9 @@ from pathlib import Path
 import unittest
 import torch
 from PIL import Image
-from text2image.model import ImageTransformer, encode_prompt, CLASSES, TEMPLATES, PREFIX, PIXELS, LEVELS
-from text2image.train import pixel_loss
-from text2image.generate import save_grid
+from text2image.fashion_mnist.model import ImageTransformer, encode_prompt, CLASSES, TEMPLATES, PREFIX, PIXELS, LEVELS
+from text2image.fashion_mnist.train import pixel_loss
+from text2image.fashion_mnist.generate import save_grid
 
 
 class ModelTests(unittest.TestCase):
@@ -38,7 +38,7 @@ class ModelTests(unittest.TestCase):
         self.assertGreater(model.embed.weight.grad.abs().sum().item(), 0)
 
     def test_two_example_masks_and_loss_selection(self):
-        from text2image.trace_batch import attention_probe
+        from text2image.fashion_mnist.trace_batch import attention_probe
         model = ImageTransformer(width=16, layers=1, heads=2, side=28).eval()
         captions = torch.tensor([encode_prompt("draw a bag"), encode_prompt("a grayscale image of a coat")])
         pixels = torch.zeros((2, 784), dtype=torch.long)

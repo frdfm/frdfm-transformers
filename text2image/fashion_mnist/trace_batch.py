@@ -7,8 +7,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from text2image.model import ImageTransformer, encode_prompt, CLASSES, PAD, PREFIX
-from text2image.train import pixel_loss
+from text2image.fashion_mnist.model import ImageTransformer, encode_prompt, CLASSES, PAD, PREFIX
+from text2image.fashion_mnist.train import pixel_loss
 
 
 def attention_probe(module, h, tokens, query_positions):
