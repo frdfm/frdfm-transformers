@@ -1,13 +1,14 @@
 # Small Transformers, trained from scratch
 
-Two local PyTorch experiments for learning how Transformers work. Both learn their embeddings and model weights from scratch; neither uses a pretrained language model or image generator.
+Local PyTorch experiments for learning how Transformers work. All learn their embeddings and model weights from scratch; none uses a pretrained language model or image generator.
 
 | Experiment | Input -> output | Model | Read more |
 |---|---|---|---|
 | [en2fr](en2fr/) | English sentence -> French sentence | Encoder-decoder Transformer, 16.65M parameters | [Architecture, training, and common mistakes](en2fr/README.md) |
 | [text2image/fashion_mnist](text2image/fashion_mnist/) | Short clothing caption -> grayscale image | Causal pixel Transformer, 0.90M parameters at 28 x 28 | [Architecture, training, and common mistakes](text2image/fashion_mnist/README.md) |
+| [text2image/stick_figures](text2image/stick_figures/) | Pose instructions -> stick figure, with unseen-combination tests | Small text encoder predicting continuous pose controls | [Dataset and evaluation](text2image/stick_figures/README.md) |
 
-A **token** is one item represented by an integer: a text piece for the translator, or a caption word or pixel brightness for the image model. A **Transformer** processes sequences of these items using attention, which learns which earlier or input positions provide useful information. The common training task is **next-token prediction**. The translator predicts the next French subword while attending to English. The image model predicts the next grayscale pixel after reading a caption and preceding pixels.
+A **token** is one item represented by an integer: a text piece for the translator, or a caption word or pixel brightness for the image model. A **Transformer** processes sequences of these items using attention, which learns which earlier or input positions provide useful information. The translation and Fashion-MNIST models use **next-token prediction**. The stick-figure experiment instead predicts continuous pose controls from the complete text and tests held-out combinations. The translator predicts the next French subword while attending to English. The image model predicts the next grayscale pixel after reading a caption and preceding pixels.
 
 ## Environment and commands
 
@@ -76,6 +77,7 @@ text2image/
     trace_batch.py   worked two-example attention/loss trace
     test_model.py    regression tests
     data/ checkpoints/ logs/ samples/   local generated artifacts
+  stick_figures/     exhaustive pose dataset and compositional tests
 ```
 
 Fashion-MNIST artifacts live under `text2image/fashion_mnist/`. Image artifacts at 28 x 28 use `28/` subfolders; existing 14 x 14 artifacts retain their original paths. Generated artifacts are ignored by Git and may need to be prepared or trained locally after cloning.
@@ -83,7 +85,7 @@ Fashion-MNIST artifacts live under `text2image/fashion_mnist/`. Image artifacts 
 ## Tests
 
 ```powershell
-python -m unittest -v en2fr.test_pipeline text2image.fashion_mnist.test_model
+python -m unittest -v en2fr.test_pipeline text2image.fashion_mnist.test_model text2image.stick_figures.test_experiment
 ```
 
 Tests cover the translator's padding invariance, tokenizer round-trip, sequence alignment, length filtering, LR schedule, and resume behavior; image tests cover prompts, causal masking, pixel alignment, both image resolutions, and PNG generation. These are correctness checks, not guarantees of translation accuracy or image quality.
