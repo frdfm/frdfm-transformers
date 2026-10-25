@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 import torch
 from PIL import Image, ImageDraw
-from test2image.model import ImageTransformer, encode_prompt, CLASSES, SIDE, LEVELS
+from text2image.model import ImageTransformer, encode_prompt, CLASSES, SIDE, LEVELS
 
 HERE = Path(__file__).resolve().parent
 

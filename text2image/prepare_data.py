@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from test2image.model import SIDE, LEVELS
+from text2image.model import SIDE, LEVELS
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE / "data"

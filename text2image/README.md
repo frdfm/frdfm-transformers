@@ -9,10 +9,10 @@ The default 28 x 28 network has 901,392 parameters: four causal Transformer bloc
 ## Run from the repository root, in your existing venv
 
 ```powershell
-python -m test2image.prepare_data --size 28
-python -m test2image.train --size 28 --steps 5000
-python -m test2image.generate "draw a bag"
-python -m test2image.generate --all
+python -m text2image.prepare_data --size 28
+python -m text2image.train --size 28 --steps 5000
+python -m text2image.generate "draw a bag"
+python -m text2image.generate --all
 ```
 
 Preparation downloads about 30 MB of compressed Fashion-MNIST from the dataset authors' repository and verifies the published MD5 checksums. It preserves the native 28 x 28 resolution and quantizes intensities to 16 values. With `--size 14` it instead averages 2 x 2 pixel blocks. A seeded 5,000-image validation split is held out from the original 60,000 training examples; the official 10,000-image test set is prepared but never used to choose checkpoints.
@@ -29,17 +29,17 @@ Categories: `t-shirt`, `trousers`, `pullover`, `dress`, `coat`, `sandal`, `shirt
 Training templates: `draw a {category}`, `a drawing of a {category}`, `a grayscale image of a {category}`, or the category alone. Prefer these forms; the model has not learned attributes such as red, striped, or two objects. Unknown words are rejected. Some categories, especially shirt/top/pullover/coat, overlap visually.
 
 ```powershell
-python -m test2image.generate "a drawing of a sneaker" --count 8 --temperature 0.8 --seed 12
+python -m text2image.generate "a drawing of a sneaker" --count 8 --temperature 0.8 --seed 12
 ```
 
-Generation writes `test2image/samples/28/generated.png`. Images are inverted for dark shapes on a white background, and enlarged using nearest-neighbor display. `--all` makes four samples per category. Change the seed for different samples; lowering temperature usually reduces variation.
+Generation writes `text2image/samples/28/generated.png`. Images are inverted for dark shapes on a white background, and enlarged using nearest-neighbor display. `--all` makes four samples per category. Change the seed for different samples; lowering temperature usually reduces variation.
 
 Training writes a labeled ten-category preview at every evaluation, CSV losses, latest checkpoint `checkpoints/28/model.pt`, and lowest-validation-loss checkpoint `checkpoints/28/best.pt`. Data, samples, logs, and checkpoints stay under this folder. Generation defaults to the latest checkpoint.
 
 ## Resume
 
 ```powershell
-python -m test2image.train --size 28 --resume --steps 5000
+python -m text2image.train --size 28 --resume --steps 5000
 ```
 
 This adds updates, restores AdamW and random states, and appends logs. The LR warms up to 0.0003 over 500 absolute steps, then decays with the inverse square root of the absolute step. It never restarts on resume. A fresh run without `--resume` replaces the training checkpoint and log.
@@ -49,7 +49,7 @@ For a quick plumbing check, use `--steps 2 --batch-size 2 --eval-every 1 --val-b
 ## Tests and references
 
 ```powershell
-python -m unittest -v test2image.test_model
+python -m unittest -v text2image.test_model
 ```
 
 Dataset and checksums: https://github.com/zalandoresearch/fashion-mnist (MIT license). Pixel-sequence modeling is inspired by Image GPT: https://github.com/openai/image-gpt. This is an independent small educational implementation, not a reproduction of its architecture or results.
@@ -59,6 +59,6 @@ Dataset and checksums: https://github.com/zalandoresearch/fashion-mnist (MIT lic
 All entry points accept `--size 14` or `--size 28` (default 28). Resolution is saved in new model configs; older checkpoints without it remain 14 x 14. The old data/checkpoint/log/sample paths are preserved for size 14. Size 28 uses a `28/` subfolder under each. A model trained at 14 x 14 cannot be resumed directly as 28 x 28 because its position embeddings have a different shape; train the new resolution from scratch.
 
 ```powershell
-python -m test2image.generate --size 14 --all
-python -m test2image.train --size 14 --resume --steps 5000
+python -m text2image.generate --size 14 --all
+python -m text2image.train --size 14 --resume --steps 5000
 ```
