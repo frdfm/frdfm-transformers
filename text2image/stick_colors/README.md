@@ -14,6 +14,16 @@ This experiment assigns a fixed color to each body part so that an apparently pl
 
 Left/right mean **canvas-left/canvas-right**, as in the other synthetic experiments. At crossings, the top stroke owns that pixel; a pixel cannot simultaneously represent two colors. Rendering draws the body, limbs, and then head. This can divide one part's visible pixels at an overlap, so evaluation reports target diagnostics too.
 
+## Sample outputs
+
+The model learned these colored images from scratch. In each row below, the **left image is the actual held-out target**, and the **middle and right images are unfiltered model-generated samples** for the prompt printed above them. The color legend identifies each body part.
+
+![Held-out colored stick-figure targets beside two generated samples per English prompt](docs/images/pose_test-comparison.png)
+
+Snapshot: checkpoint update 4,000, sampling seed 123, temperature 0.8, guidance 2. The pictured deep-bend/raised-left-arm combinations were excluded from training. Colors make both the learned structure and remaining pose/connectivity errors visible.
+
+[View familiar training targets beside generated samples](docs/images/train-comparison.png). Snapshot prompts, selected records, settings, and diagnostics are preserved in [held-out sample metadata](docs/images/pose_test-comparison.json) and [training sample metadata](docs/images/train-comparison.json). These documentation images are fixed snapshots, so later generation commands will not overwrite them.
+
 ## Generate and inspect
 
 Run from the repository root in the existing venv:

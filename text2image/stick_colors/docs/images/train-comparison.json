@@ -1,0 +1,108 @@
+{
+  "split": "train",
+  "indices": [
+    8244,
+    1672,
+    12286,
+    14490
+  ],
+  "prompts": [
+    "Draw someone with the left leg straight, keeping the left arm down, bending forward slightly, with the right leg straight while keeping the right arm down.",
+    "A drawing of a stick figure with the right knee bent, the right hand extended out to the side, a straight torso, a bent left leg, the left arm lowered.",
+    "A drawing of a man with a straight right leg, a bent left leg, the right hand hanging down, a slightly bent torso, the left arm lifted up.",
+    "Draw someone bending over, keeping the right knee straight, with the left leg straight, with the left arm hanging down and with the right hand stretched sideways."
+  ],
+  "checkpoint_step": 4000,
+  "seed": 123,
+  "temperature": 0.8,
+  "guidance": 2.0,
+  "generated": {
+    "count": 8,
+    "all_six_colors_present_fraction": 1.0,
+    "connected_foreground_fraction": 0.25,
+    "parts": {
+      "head": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.9583333333333333,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 0.875,
+        "mean_color_iou": 0.18856876992026095
+      },
+      "torso": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.7369673703319791,
+        "mean_color_iou": 0.03232570288753799
+      },
+      "left arm": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.8751821095571095,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0,
+        "mean_color_iou": 0.06102055722349996
+      },
+      "right arm": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.8035714285714286,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0,
+        "mean_color_iou": 0.10650314727645237
+      },
+      "left leg": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.9133316447146235,
+        "torso_contact_within_2px_fraction": 0.75,
+        "direct_torso_contact_fraction": 0.125,
+        "mean_color_iou": 0.09188591134128068
+      },
+      "right leg": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.7303106366369359,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0,
+        "mean_color_iou": 0.0475160792890783
+      }
+    },
+    "mean_foreground_color_iou": 0.08797002798968505
+  },
+  "targets": {
+    "count": 4,
+    "all_six_colors_present_fraction": 1.0,
+    "connected_foreground_fraction": 1.0,
+    "parts": {
+      "head": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 1.0,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0
+      },
+      "torso": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 0.9240592998332936
+      },
+      "left arm": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 1.0,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0
+      },
+      "right arm": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 1.0,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0
+      },
+      "left leg": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 1.0,
+        "torso_contact_within_2px_fraction": 0.75,
+        "direct_torso_contact_fraction": 0.0
+      },
+      "right leg": {
+        "present_fraction": 1.0,
+        "mean_largest_component_fraction": 1.0,
+        "torso_contact_within_2px_fraction": 1.0,
+        "direct_torso_contact_fraction": 1.0
+      }
+    }
+  }
+}

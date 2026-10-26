@@ -11,6 +11,14 @@ Local PyTorch experiments for learning how Transformers work. All learn their em
 | [text2image/text2stick](text2image/text2stick/) | Plain-English descriptions -> directly generated pixels | English encoder and cross-attending pixel decoder | [Generate from English](text2image/text2stick/README.md) |
 | [text2image/stick_colors](text2image/stick_colors/) | English -> colored body-part pixels | Palette-pixel Transformer with color/connectivity diagnostics | [Inspect colored limbs](text2image/stick_colors/README.md) |
 
+## Colored stick-figure sample
+
+English prompts to colored image pixels, trained locally from scratch. **Left: held-out target. Middle and right: generated samples for the same prompt.** The image includes a color legend for the head, torso, arms, and legs.
+
+![Colored stick-figure targets and generated samples with their English prompts](text2image/stick_colors/docs/images/pose_test-comparison.png)
+
+From checkpoint update 4,000. See the [colored experiment guide](text2image/stick_colors/README.md#sample-outputs) for the training-sample comparison, generation commands, and measured results.
+
 A **token** is one item represented by an integer: a text piece for the translator, or a caption word or pixel brightness for the image model. A **Transformer** processes sequences of these items using attention, which learns which earlier or input positions provide useful information. The translation and Fashion-MNIST models use **next-token prediction**. The stick-figure experiment instead predicts continuous pose controls from the complete text and tests held-out combinations. The translator predicts the next French subword while attending to English. The image model predicts the next grayscale pixel after reading a caption and preceding pixels.
 
 ## Environment and commands
