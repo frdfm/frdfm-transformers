@@ -10,31 +10,47 @@ from text2image.text2stick.tokenization import HERE,encode,SIDE,MAX_TEXT
 
 
 def build_records():
-    source=HERE.parent/"stick_pixels"/"data"
-    manifest=json.loads((source/"manifest.json").read_text())
-    if manifest.get("format_version")!=2 or manifest["train_variants_per_combination"]<256:
-        raise ValueError("Prepare version-2 stick_pixels data with at least 256 train variants first")
+    from text2image.text2stick.renderer import raster,is_connected
+    from text2image.stick_figures.data import split_combinations
+    combinations=split_combinations()
+    manifest={"combinations":combinations,"variants_per_split":{"train":256,"val":64,"test":64}}
+    variants=manifest["variants_per_split"]
+    source_images={}
+    seen=set()
+    for split_number,name in enumerate(("train","val","test")):
+        images=[]
+        for combo_number,combo in enumerate(combinations[name]):
+            for j in range(variants[name]):
+                rng=np.random.default_rng(np.random.SeedSequence([2026,split_number,combo_number,j]))
+                for attempt in range(200):
+                    pixels=raster(combo,rng,side=SIDE)
+                    key=np.packbits(pixels).tobytes()
+                    if key not in seen and is_connected(pixels,SIDE):
+                        seen.add(key);images.append(pixels);break
+                else:raise ValueError("Unable to create a distinct raster")
+        source_images[name]=np.stack(images)
+        print(f"Rendered {name}: {len(images)} connected-style targets at {SIDE}px",flush=True)
+    manifest["dataset_sha256"]=hashlib.sha256(b"".join(source_images[n].tobytes() for n in ("train","val","test"))).hexdigest()
     groups={}
     variants=manifest["variants_per_split"]
-    with np.load(source/"train.npz") as data:
-        source_pixels=data["pixels"]
-        for split,offset,count,family in [("train",0,224,None),("word_val",224,16,3),("word_test",240,16,4)]:
-            rows=[]
-            for combo_number,combo in enumerate(manifest["combinations"]["train"]):
-                for j in range(offset,offset+count):
-                    rng=random.Random(f"42:{split}:{combo_number}:{j}")
-                    partial=split=="train" and rng.random()<0.3
-                    text=caption(combo,rng,family,partial)
-                    full=caption(combo,random.Random(f"full:{split}:{combo_number}:{j}"),family,False)
-                    rows.append(dict(text=text,full_text=full,partial=partial,combo=combo,
-                                     pixels=source_pixels[combo_number*variants["train"]+j].copy()))
-            groups[split]=rows
+    source_pixels=source_images["train"]
+    for split,offset,count,family in [("train",0,224,None),("word_val",224,16,3),("word_test",240,16,4)]:
+        rows=[]
+        for combo_number,combo in enumerate(manifest["combinations"]["train"]):
+            for j in range(offset,offset+count):
+                rng=random.Random(f"42:{split}:{combo_number}:{j}")
+                partial=split=="train" and rng.random()<0.3
+                text=caption(combo,rng,family,partial)
+                full=caption(combo,random.Random(f"full:{split}:{combo_number}:{j}"),family,False)
+                rows.append(dict(text=text,full_text=full,partial=partial,combo=combo,
+                                 pixels=source_pixels[combo_number*variants["train"]+j].copy()))
+        groups[split]=rows
     for split,source_split,family in [("pose_val","val",None),("pose_test","test",None),("combined_test","test",4)]:
         rows=[]
-        with np.load(source/f"{source_split}.npz") as data:
-            for i,(image,combo) in enumerate(zip(data["pixels"],data["combos"])):
-                text=caption(combo,random.Random(f"42:{split}:{i}"),family,False)
-                rows.append(dict(text=text,full_text=text,partial=False,combo=combo.tolist(),pixels=image.copy()))
+        combos=np.repeat(np.array(combinations[source_split]),variants[source_split],axis=0)
+        for i,(image,combo) in enumerate(zip(source_images[source_split],combos)):
+            text=caption(combo,random.Random(f"42:{split}:{i}"),family,False)
+            rows.append(dict(text=text,full_text=text,partial=False,combo=combo.tolist(),pixels=image.copy()))
         groups[split]=rows
     return groups,manifest["dataset_sha256"]
 
@@ -61,7 +77,7 @@ def main():
         files[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
         counts[split]=len(records)
         print(split,len(records),"maximum text length",int((tokens!=0).sum(1).max()),flush=True)
-    manifest=dict(format_version=1,representation="plain_english_to_binary_pixels",side=SIDE,max_text=MAX_TEXT,
+    manifest=dict(format_version=2,renderer="connected_skeleton_48px_v2",representation="plain_english_to_binary_pixels",side=SIDE,max_text=MAX_TEXT,
                   tokenizer_sha256=hashlib.sha256((folder/"tokenizer.json").read_bytes()).hexdigest(),
                   source_dataset_sha256=source_hash,records=counts,files_sha256=files,
                   split_policy="pose pairings held out; phrase families 0-2 train,3 wording val,4 wording test")

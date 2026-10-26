@@ -2,7 +2,7 @@
 import argparse,json
 import numpy as np
 import torch
-from text2image.text2stick.tokenization import HERE,MAX_TEXT,encode,load_tokenizer
+from text2image.text2stick.tokenization import HERE,MAX_TEXT,PIXEL_BOS,SIDE,PATCH,encode,load_tokenizer
 from text2image.text2stick.generate import load_model,save_grid
 from text2image.text2stick.train import load,decoder_inputs,per_image_loss
 
@@ -30,17 +30,17 @@ def main():
     model,state=load_model(device,args.mode)
     tokenizer=load_tokenizer()
     empty=torch.tensor([[tokenizer.token_to_id("<eos>")]+[0]*(MAX_TEXT-1)],device=device)
-    reports=dict(mode=args.mode,pixel_score_kind="autoregressive_teacher_forced_nll" if args.mode=="autoregressive" else "fully_masked_pixel_cross_entropy",step=state["step"],temperature=args.temperature,guidance=args.guidance,splits={})
+    reports=dict(mode=args.mode,image_side=SIDE,patch_size=PATCH,pixel_score_kind="autoregressive_patch_nll_per_pixel" if args.mode=="autoregressive" else "fully_masked_patch_cross_entropy_per_pixel",step=state["step"],temperature=args.temperature,guidance=args.guidance,splits={})
     for split in args.splits:
         if split not in ("pose_val","word_val","word_test","pose_test","combined_test"):parser.error("Unknown split")
         data=load(split);total=0.;gap=0.;count=0
         # Caption mismatch uses a different full pose, and is a diagnostic only.
         permutation=torch.roll(torch.arange(len(data["pixels"])),shifts=64 if "pose" in split or "combined" in split else 16)
         for batch in torch.arange(len(data["pixels"])).split(32):
-            text=data["text"][batch].to(device);pixels=data["pixels"][batch].to(device)
+            text=data["text"][batch].to(device);pixels=data["tokens"][batch].to(device)
             wrong=data["text"][permutation[batch]].to(device)
             with torch.autocast(device,dtype=torch.bfloat16,enabled=amp):
-                scores=model(torch.cat([text,wrong]),torch.cat([torch.full_like(pixels,2) if args.mode=="masked" else decoder_inputs(pixels)]*2))
+                scores=model(torch.cat([text,wrong]),torch.cat([torch.full_like(pixels,PIXEL_BOS) if args.mode=="masked" else decoder_inputs(pixels)]*2))
             good,bad=scores.chunk(2)
             good_loss=per_image_loss(good,pixels);bad_loss=per_image_loss(bad,pixels)
             total+=good_loss.sum().item();gap+=(bad_loss-good_loss).sum().item();count+=len(batch)

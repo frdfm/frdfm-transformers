@@ -1,12 +1,29 @@
 import unittest
 import torch
 from text2image.text2stick.model import TextToPixels
+from text2image.text2stick.tokenization import PIXELS,PIXEL_CLASSES
 from text2image.text2stick.train import decoder_inputs,per_image_loss
 
 
 class ModelTests(unittest.TestCase):
     def setUp(self):
         torch.set_num_threads(2);torch.manual_seed(3)
+    def test_pixel_packing_is_lossless(self):
+        from text2image.text2stick.pixel_tokens import pack_pixels,unpack_tokens
+        pixels=torch.randint(2,(3,PIXELS))
+        tokens=pack_pixels(pixels)
+        self.assertEqual(tokens.shape,(3,576))
+        self.assertTrue(((tokens>=0)&(tokens<16)).all())
+        torch.testing.assert_close(unpack_tokens(tokens),pixels)
+        all_patterns=torch.arange(16).repeat(36).reshape(1,576)
+        torch.testing.assert_close(pack_pixels(unpack_tokens(all_patterns)),all_patterns)
+        grid=unpack_tokens(torch.full((1,576),6)).reshape(48,48)
+        self.assertEqual(grid[:2,:2].tolist(),[[0,1],[1,0]])
+        scores=torch.randn(2,10,16)
+        targets=torch.randint(16,(2,10))
+        expected=torch.nn.functional.cross_entropy(scores.reshape(-1,16),targets.reshape(-1))/4
+        torch.testing.assert_close(per_image_loss(scores,targets).mean(),expected)
+
     def test_cache_matches_full_prefix(self):
         model=TextToPixels(32,width=16,text_layers=1,pixel_layers=2,heads=2).eval()
         text=torch.tensor([[3,4,5,2,0,0],[5,6,2,0,0,0]])
@@ -29,14 +46,14 @@ class ModelTests(unittest.TestCase):
         loss=per_image_loss(a,pixels).mean();loss.backward()
         self.assertGreater(model.word.weight.grad.abs().sum().item(),0)
         self.assertGreater(model.pixel.weight.grad.abs().sum().item(),0)
-        self.assertEqual(a.shape,(2,10,2))
+        self.assertEqual(a.shape,(2,10,PIXEL_CLASSES))
 
     def test_masked_pixels_and_inference_have_no_pose_parser(self):
         import builtins,importlib
         from unittest.mock import patch
         original=builtins.__import__
         def reject(name,*args,**kwargs):
-            if name.startswith("text2image.stick_figures") or name.endswith("stick_pixels.prepare_data"):
+            if name.startswith("text2image.stick_figures") or name.endswith("stick_pixels.prepare_data") or name.endswith("text2stick.renderer"):
                 raise AssertionError("Inference attempted to import pose geometry")
             return original(name,*args,**kwargs)
         with patch("builtins.__import__",side_effect=reject):
@@ -44,7 +61,7 @@ class ModelTests(unittest.TestCase):
             model=TextToPixels(32,width=8,text_layers=1,pixel_layers=1,heads=1,mode="masked").eval()
             text=torch.tensor([[3,4,2,0]])
             pixels=model.sample(text,temperature=0,guidance=1.)
-        self.assertEqual(pixels.shape,(1,576))
+        self.assertEqual(pixels.shape,(1,PIXELS))
         self.assertTrue(((pixels==0)|(pixels==1)).all())
         logits=torch.randn(1,6,2,requires_grad=True)
         targets=torch.tensor([[0,1,0,1,0,1]])
@@ -54,15 +71,31 @@ class ModelTests(unittest.TestCase):
         self.assertTrue(torch.all(logits.grad[~mask]==0))
         self.assertGreater(logits.grad[mask].abs().sum().item(),0)
 
+    def test_clean_renderer_connected_and_seeded(self):
+        import numpy as np
+        from text2image.text2stick.renderer import raster,is_connected
+        from text2image.stick_figures.data import COMBINATIONS
+        for i,combo in enumerate(COMBINATIONS):
+            a=raster(combo,np.random.default_rng(i),side=48)
+            b=raster(combo,np.random.default_rng(i),side=48)
+            np.testing.assert_array_equal(a,b)
+            self.assertEqual(a.shape,(48*48,))
+            self.assertTrue(is_connected(a,48),f"Disconnected pose: {combo}")
+            image=a.reshape(48,48)
+            self.assertFalse(image[[0,-1],:].any() or image[:,[0,-1]].any())
+
     def test_dataset_holdouts_and_byte_tokenizer(self):
         import json,numpy as np
         from text2image.text2stick.tokenization import HERE,load_tokenizer,encode
+        from text2image.text2stick.renderer import is_connected
         sets={};images={};texts={}
         for split in ("train","word_val","word_test","pose_val","pose_test","combined_test"):
             with np.load(HERE/"data"/f"{split}.npz") as data:
                 self.assertEqual(set(data.files),{"text","full_text","pixels","combos","partial"})
-                self.assertEqual(data["pixels"].shape[1],576)
+                self.assertEqual(data["pixels"].shape[1],PIXELS)
                 self.assertTrue(np.all((data["pixels"]==0)|(data["pixels"]==1)))
+                for raster in data["pixels"][::max(1,len(data["pixels"])//12)]:
+                    self.assertTrue(is_connected(raster,48))
                 sets[split]=set(map(tuple,data["combos"].tolist()))
                 images[split]={np.packbits(row).tobytes() for row in data["pixels"]}
             texts[split]=set(json.loads((HERE/"data"/f"{split}-captions.json").read_text()))

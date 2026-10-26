@@ -10,21 +10,24 @@ from text2image.text2stick.model import TextToPixels
 
 def save_grid(pixels,path,labels=None,columns=4):
     arrays=pixels.detach().cpu().numpy().reshape(-1,SIDE,SIDE)
-    size=192;rows=(len(arrays)+columns-1)//columns
-    image=Image.new("RGB",(columns*size,rows*(size+62)),"#eeeeee")
-    draw=ImageDraw.Draw(image)
     import textwrap
+    size=192;rows=(len(arrays)+columns-1)//columns
+    lines=[textwrap.wrap(label,width=30) for label in labels] if labels else [[] for _ in arrays]
+    heading=max(20,max((len(row) for row in lines),default=0)*12+8)
+    image=Image.new("RGB",(columns*size,rows*(size+heading+4)),"#eeeeee")
+    draw=ImageDraw.Draw(image)
     for i,array in enumerate(arrays):
-        x,y=i%columns*size,i//columns*(size+62)
+        x,y=i%columns*size,i//columns*(size+heading+4)
         raster=Image.fromarray(((1-array)*255).astype("uint8"))
-        image.paste(raster.resize((size,size),Image.Resampling.NEAREST),(x,y+58))
-        if labels:
-            for j,line in enumerate(textwrap.wrap(labels[i],width=30)[:4]):draw.text((x+3,y+2+j*12),line,fill="black")
+        image.paste(raster.resize((size,size),Image.Resampling.NEAREST),(x,y+heading))
+        for j,line in enumerate(lines[i]):draw.text((x+3,y+2+j*12),line,fill="black")
     path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);image.save(path)
 
 
 def load_model(device,mode="autoregressive"):
     state=torch.load(HERE/"checkpoints"/("masked" if mode=="masked" else "")/"model.pt",map_location="cpu",weights_only=True)
+    if state["config"].get("image_side")!=SIDE or state["config"].get("patch_size")!=2:
+        raise ValueError("Checkpoint pixel representation differs; train the current 48px patch model")
     signature=hashlib.sha256((HERE/"data"/"tokenizer.json").read_bytes()).hexdigest()
     if state["tokenizer_sha256"]!=signature:raise ValueError("Tokenizer changed; use the checkpoint's tokenizer or retrain")
     model=TextToPixels(**state["config"]).to(device).eval();model.load_state_dict(state["model"])

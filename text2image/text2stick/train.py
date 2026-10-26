@@ -2,13 +2,16 @@ import argparse,json,time
 import numpy as np
 import torch
 import torch.nn.functional as F
-from text2image.text2stick.tokenization import HERE,PIXEL_BOS,load_tokenizer,encode
+from text2image.text2stick.tokenization import HERE,PIXEL_BOS,SIDE,MAX_TEXT,PATCH,PIXEL_CLASSES,load_tokenizer,encode
 from text2image.text2stick.model import TextToPixels
+from text2image.text2stick.pixel_tokens import pack_pixels
 
 
 def load(split):
     with np.load(HERE/"data"/f"{split}.npz") as d:
-        return {key:torch.tensor(d[key].astype(np.int64)) for key in d.files}
+        data={key:torch.tensor(d[key].astype(np.int64)) for key in d.files}
+    data["tokens"]=pack_pixels(data["pixels"])
+    return data
 
 
 def decoder_inputs(pixels):
@@ -16,10 +19,12 @@ def decoder_inputs(pixels):
 
 
 def per_image_loss(logits,pixels,ink_weight=1.,mask=None):
-    losses=F.cross_entropy(logits.float().reshape(-1,2),pixels.reshape(-1),reduction="none").reshape_as(pixels)
-    weights=(1+(ink_weight-1)*(pixels==1)).float()
+    losses=F.cross_entropy(logits.float().reshape(-1,logits.shape[-1]),pixels.reshape(-1),reduction="none").reshape_as(pixels)
+    patch_bits=PATCH*PATCH if logits.shape[-1]==PIXEL_CLASSES else 1
+    ink=sum(((pixels>>bit)&1).float() for bit in range(patch_bits))/patch_bits
+    weights=1+(ink_weight-1)*ink
     if mask is not None:weights=weights*mask
-    return (losses*weights).sum(1)/weights.sum(1).clamp_min(1)
+    return (losses*weights).sum(1)/weights.sum(1).clamp_min(1)/patch_bits
 
 
 @torch.inference_mode()
@@ -29,9 +34,9 @@ def validation(model,data,device,amp):
     stride=16 if len(data["pixels"])==1344 else 64
     indices=torch.tensor([i for start in range(0,len(data["pixels"]),stride) for i in range(start,min(start+4,len(data["pixels"])))])
     for batch in indices.split(32):
-        text,pixels=data["text"][batch].to(device),data["pixels"][batch].to(device)
+        text,pixels=data["text"][batch].to(device),data["tokens"][batch].to(device)
         with torch.autocast(device,dtype=torch.bfloat16,enabled=amp):
-            scores=model(text,torch.full_like(pixels,2) if model.mode=="masked" else decoder_inputs(pixels))
+            scores=model(text,torch.full_like(pixels,PIXEL_BOS) if model.mode=="masked" else decoder_inputs(pixels))
         total+=per_image_loss(scores,pixels).sum().item();count+=len(batch)
     return total/count
 
@@ -51,7 +56,7 @@ def main():
     amp=device=="cuda" and torch.cuda.is_bf16_supported()
     train=load("train");validations=[load(s) for s in ("pose_val","word_val")]
     tokenizer=load_tokenizer();manifest=json.loads((HERE/"data"/"manifest.json").read_text())
-    empty=torch.tensor([tokenizer.token_to_id("<eos>")]+[0]*159)
+    empty=torch.tensor([tokenizer.token_to_id("<eos>")]+[0]*(MAX_TEXT-1))
     model=TextToPixels(tokenizer.get_vocab_size(),mode=args.mode).to(device)
     if args.initialize and not args.resume:
         initial=torch.load(args.initialize,map_location="cpu",weights_only=True)
@@ -83,7 +88,7 @@ def main():
         text=train["text"][pick].clone()
         blank=torch.rand(args.batch_size)<0.1
         text[blank]=empty
-        pixels=train["pixels"][pick].to(device)
+        pixels=train["tokens"][pick].to(device)
         negative_text=train["full_text"][negative]
         # Only fully specified positive descriptions enter mismatch ranking.
         rank_valid=(~train["partial"][pick].bool() & ~blank).to(device)
@@ -94,7 +99,7 @@ def main():
             rate=torch.rand(len(pixels),1,device=device)*0.9+0.1
             rate[torch.rand(len(pixels),device=device)<0.25]=1
             mask=torch.rand(pixels.shape,device=device)<rate
-            inputs=pixels.masked_fill(mask,2)
+            inputs=pixels.masked_fill(mask,PIXEL_BOS)
         else:inputs=decoder_inputs(pixels)
         optimizer.zero_grad(set_to_none=True)
         with torch.autocast(device,dtype=torch.bfloat16,enabled=amp):
@@ -118,7 +123,7 @@ def main():
             state=dict(model=model.state_dict(),optimizer=optimizer.state_dict(),config=model.config,
                        step=step,best_validation=best,dataset_sha256=manifest["dataset_sha256"],
                        tokenizer_sha256=manifest["tokenizer_sha256"],cpu_rng=torch.get_rng_state(),
-                       representation="binary_pixels",seed=args.seed,mode=args.mode)
+                       representation="binary_pixels",image_side=SIDE,seed=args.seed,mode=args.mode)
             if device=="cuda":state["cuda_rng"]=torch.cuda.get_rng_state_all()
             torch.save(state,checkpoint/"latest.tmp");(checkpoint/"latest.tmp").replace(checkpoint/"latest.pt")
             if improved:

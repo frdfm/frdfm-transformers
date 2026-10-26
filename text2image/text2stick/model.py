@@ -2,7 +2,8 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from text2image.text2stick.tokenization import MAX_TEXT,PIXELS,PIXEL_BOS,PAD
+from text2image.text2stick.pixel_tokens import unpack_tokens
+from text2image.text2stick.tokenization import MAX_TEXT,IMAGE_TOKENS,PIXEL_CLASSES,PIXEL_BOS,PAD,SIDE,PATCH
 
 
 class Attention(nn.Module):
@@ -59,19 +60,20 @@ class PixelBlock(nn.Module):
 
 
 class TextToPixels(nn.Module):
-    def __init__(self,vocab_size,width=96,text_layers=2,pixel_layers=4,heads=4,mode="autoregressive"):
+    def __init__(self,vocab_size,width=96,text_layers=2,pixel_layers=4,heads=4,mode="autoregressive",patch_size=PATCH,image_side=SIDE):
         super().__init__()
+        if patch_size!=PATCH or image_side!=SIDE:raise ValueError("Checkpoint pixel representation differs from this code")
         self.mode=mode
-        self.config=dict(vocab_size=vocab_size,width=width,text_layers=text_layers,pixel_layers=pixel_layers,heads=heads,mode=mode)
+        self.config=dict(vocab_size=vocab_size,width=width,text_layers=text_layers,pixel_layers=pixel_layers,heads=heads,mode=mode,patch_size=patch_size,image_side=image_side)
         self.word=nn.Embedding(vocab_size,width,padding_idx=PAD)
         self.text_position=nn.Embedding(MAX_TEXT,width)
         self.text_blocks=nn.ModuleList([TextBlock(width,heads) for _ in range(text_layers)])
         self.text_norm=nn.LayerNorm(width)
-        self.pixel=nn.Embedding(3,width)
-        self.pixel_position=nn.Embedding(PIXELS,width)
+        self.pixel=nn.Embedding(PIXEL_CLASSES+1,width)
+        self.pixel_position=nn.Embedding(IMAGE_TOKENS,width)
         self.pixel_blocks=nn.ModuleList([PixelBlock(width,heads) for _ in range(pixel_layers)])
         self.pixel_norm=nn.LayerNorm(width)
-        self.output=nn.Linear(width,2)
+        self.output=nn.Linear(width,PIXEL_CLASSES)
 
     def encode(self,text):
         length=max(1,int((text!=PAD).sum(1).max()))
@@ -104,7 +106,7 @@ class TextToPixels(nn.Module):
         caches=[[{}, {"static":True}] for _ in self.pixel_blocks]
         previous=torch.full((len(text),1),PIXEL_BOS,device=text.device,dtype=torch.long)
         result=[]
-        for position in range(PIXELS):
+        for position in range(IMAGE_TOKENS):
             scores=self.decode(previous,memory,padding,position,caches)[:,-1].float()
             if guidance!=1:
                 conditional,unconditional=scores.chunk(2)
@@ -112,7 +114,7 @@ class TextToPixels(nn.Module):
             next_pixel=scores.argmax(-1,keepdim=True) if temperature==0 else torch.multinomial((scores/temperature).softmax(-1),1)
             result.append(next_pixel)
             previous=torch.cat([next_pixel,next_pixel],0) if guidance!=1 else next_pixel
-        return torch.cat(result,1)
+        return unpack_tokens(torch.cat(result,1))
 
 
     @torch.inference_mode()
@@ -124,7 +126,7 @@ class TextToPixels(nn.Module):
             text=torch.cat([text,empty_text.expand(batch,-1)],0)
         memory,padding=self.encode(text)
         caches=[[None,{"static":True}] for _ in self.pixel_blocks]
-        pixels=torch.full((batch,PIXELS),2,device=text.device,dtype=torch.long)
+        pixels=torch.full((batch,IMAGE_TOKENS),PIXEL_BOS,device=text.device,dtype=torch.long)
         for step in range(steps):
             inputs=torch.cat([pixels,pixels],0) if guidance!=1 else pixels
             scores=self.decode(inputs,memory,padding,caches=caches).float()
@@ -132,13 +134,13 @@ class TextToPixels(nn.Module):
                 conditional,unconditional=scores.chunk(2)
                 scores=unconditional+guidance*(conditional-unconditional)
             probabilities=(scores/(temperature if temperature>0 else 1.)).softmax(-1)
-            chosen=scores.argmax(-1) if temperature==0 else torch.multinomial(probabilities.reshape(-1,2),1).reshape(batch,PIXELS)
+            chosen=scores.argmax(-1) if temperature==0 else torch.multinomial(probabilities.reshape(-1,PIXEL_CLASSES),1).reshape(batch,IMAGE_TOKENS)
             confidence=probabilities.gather(-1,chosen.unsqueeze(-1)).squeeze(-1)
-            confidence=confidence.masked_fill(pixels!=2,-torch.inf)
-            remaining=int(PIXELS*math.cos((step+1)/steps*math.pi/2)) if step+1<steps else 0
+            confidence=confidence.masked_fill(pixels!=PIXEL_BOS,-torch.inf)
+            remaining=int(IMAGE_TOKENS*math.cos((step+1)/steps*math.pi/2)) if step+1<steps else 0
             for b in range(batch):
-                number=max(0,int((pixels[b]==2).sum())-remaining)
+                number=max(0,int((pixels[b]==PIXEL_BOS).sum())-remaining)
                 if number:
                     indices=confidence[b].topk(number).indices
                     pixels[b,indices]=chosen[b,indices]
-        return pixels
+        return unpack_tokens(pixels)
