@@ -8,6 +8,7 @@ Each dataset experiment has its own package, architecture guide, training code, 
 | [Text-to-pose controls](stick_figures/) | Text to pose controls, tested on unseen component pairings | [Dataset, architecture, and evaluation](stick_figures/README.md) |
 | [Stick pixels](stick_pixels/) | Actual text-to-binary-pixel generation, including held-out pose combinations | [Pixel architecture and evaluation](stick_pixels/README.md) |
 | [Text2Stick](text2stick/) | Ordinary English to actual binary pixels, with text encoder and pixel decoder | [Use the trained plain-English model](text2stick/README.md) |
+| [Colored stick figures](stick_colors/) | English to colored pixels, with per-limb color and connectivity diagnostics | [Targets, generation, and diagnostic limits](stick_colors/README.md) |
 
 ## Fashion-MNIST
 

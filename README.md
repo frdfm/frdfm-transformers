@@ -9,6 +9,7 @@ Local PyTorch experiments for learning how Transformers work. All learn their em
 | [text2image/stick_figures](text2image/stick_figures/) | Pose instructions -> stick figure, with unseen-combination tests | Small text encoder predicting continuous pose controls | [Dataset and evaluation](text2image/stick_figures/README.md) |
 | [text2image/stick_pixels](text2image/stick_pixels/) | Pose descriptions -> directly generated binary pixels | Autoregressive pixel Transformer | [Pixel-only architecture and tests](text2image/stick_pixels/README.md) |
 | [text2image/text2stick](text2image/text2stick/) | Plain-English descriptions -> directly generated pixels | English encoder and cross-attending pixel decoder | [Generate from English](text2image/text2stick/README.md) |
+| [text2image/stick_colors](text2image/stick_colors/) | English -> colored body-part pixels | Palette-pixel Transformer with color/connectivity diagnostics | [Inspect colored limbs](text2image/stick_colors/README.md) |
 
 A **token** is one item represented by an integer: a text piece for the translator, or a caption word or pixel brightness for the image model. A **Transformer** processes sequences of these items using attention, which learns which earlier or input positions provide useful information. The translation and Fashion-MNIST models use **next-token prediction**. The stick-figure experiment instead predicts continuous pose controls from the complete text and tests held-out combinations. The translator predicts the next French subword while attending to English. The image model predicts the next grayscale pixel after reading a caption and preceding pixels.
 
@@ -21,7 +22,7 @@ Dependencies:
 | Experiment | Python packages |
 |---|---|
 | `en2fr` | `torch`, `numpy`, `datasets`, `tokenizers` |
-| `text2image` | `torch`, `numpy`, `Pillow` |
+| `text2image` | `torch`, `numpy`, `Pillow`; `tokenizers` for ordinary-English experiments |
 
 The development environment is Python 3.11 with CUDA-enabled PyTorch on an RTX 3060 with 12 GB VRAM. Both experiments select CUDA when available and otherwise use CPU, which is slower. The translator enables BF16 whenever CUDA is selected; it currently assumes BF16-capable hardware.
 
