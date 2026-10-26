@@ -1,4 +1,4 @@
-import argparse,json,time
+import argparse,json,time,hashlib
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -9,9 +9,50 @@ from text2image.stick_colors.pixel_tokens import pack_pixels
 
 def load(split):
     with np.load(HERE/"data"/f"{split}.npz") as d:
-        data={key:torch.tensor(d[key].astype(np.int64)) for key in d.files}
-    data["tokens"]=pack_pixels(data["pixels"])
+        data={key:torch.from_numpy(d[key]) for key in d.files}
+    for key in ("text","full_text"):data[key]=data[key].long()
+    data["tokens"]=torch.cat([pack_pixels(chunk) for chunk in data["pixels"].split(1024)])
     return data
+
+
+def validate_resume_data(state,manifest,accept_expanded=False,folder=None):
+    folder=HERE/"data" if folder is None else folder
+    if state["tokenizer_sha256"]!=manifest["tokenizer_sha256"]:
+        raise ValueError("Checkpoint/tokenizer mismatch")
+    if state["dataset_sha256"]==manifest["dataset_sha256"]:return
+    if not accept_expanded:
+        raise ValueError("Checkpoint/data mismatch; for a verified append-only expansion use --accept-expanded-data")
+    if manifest.get("parent_dataset_sha256")!=state["dataset_sha256"]:
+        raise ValueError("Expanded data must directly descend from the checkpoint dataset")
+    expansion=manifest.get("expansion",{})
+    archive=(folder/expansion["archive"]).resolve()
+    if not archive.is_relative_to(folder.resolve()):raise ValueError("Archive must stay inside the data folder")
+    def signature(path):return hashlib.sha256(path.read_bytes()).hexdigest()
+    parent=json.loads((archive/"manifest.json").read_text())
+    parent_signature=parent.pop("dataset_sha256")
+    if parent_signature!=state["dataset_sha256"] or hashlib.sha256(json.dumps(parent,sort_keys=True).encode()).hexdigest()!=parent_signature:
+        raise ValueError("Archived parent manifest does not match checkpoint data")
+    if expansion["retained_train_npz_sha256"]!=parent["files_sha256"]["train.npz"] or expansion["retained_train_records"]!=parent["records"]["train"]:
+        raise ValueError("Original training provenance changed")
+    required=(set(parent["files_sha256"])-{"train.npz"})|{"tokenizer.json"}
+    required.update(file.name for file in archive.glob("*-captions.json") if file.name!="train-captions.json")
+    if not required.issubset(manifest["frozen_files_sha256"]):raise ValueError("Frozen evaluation files are missing")
+    if signature(folder/"tokenizer.json")!=state["tokenizer_sha256"]:raise ValueError("Tokenizer changed")
+    for name,expected in manifest["frozen_files_sha256"].items():
+        if signature(folder/name)!=expected or signature(archive/name)!=expected:
+            raise ValueError(f"Frozen evaluation/tokenizer file changed: {name}")
+    for name,expected in manifest["files_sha256"].items():
+        if signature(folder/name)!=expected:raise ValueError(f"Expanded dataset checksum mismatch: {name}")
+    if signature(archive/"train.npz")!=expansion["retained_train_npz_sha256"]:
+        raise ValueError("Original training archive changed")
+    with np.load(archive/"train.npz") as old,np.load(folder/"train.npz") as new:
+        count=expansion["retained_train_records"]
+        for key in old.files:
+            if not np.array_equal(old[key],new[key][:count]):raise ValueError("Original training rows changed")
+        old_combos=set(map(tuple,old["combos"].tolist()))
+        new_combos=set(map(tuple,new["combos"].tolist()))
+        if old_combos!=new_combos:raise ValueError("Expansion changed training pose combinations")
+    print("Accepted verified training-only expansion; preserving optimizer and absolute learning-rate step.",flush=True)
 
 
 def decoder_inputs(pixels):
@@ -48,8 +89,10 @@ def main():
     parser.add_argument("--steps",type=int,default=4000)
     parser.add_argument("--batch-size",type=int,default=16)
     parser.add_argument("--resume",action="store_true")
+    parser.add_argument("--accept-expanded-data",action="store_true",help="Resume only a verified append-only training expansion with frozen holdouts/tokenizer")
     parser.add_argument("--seed",type=int,default=7)
     args=parser.parse_args()
+    if args.accept_expanded_data and not args.resume:parser.error("--accept-expanded-data requires --resume")
     if min(args.steps,args.batch_size)<1:parser.error("Steps and batch size must be positive")
     torch.set_num_threads(2);torch.manual_seed(args.seed)
     device="cuda" if torch.cuda.is_available() else "cpu"
@@ -70,7 +113,7 @@ def main():
     start,best,history=0,float("inf"),[]
     if args.resume:
         state=torch.load(checkpoint/"latest.pt",map_location="cpu",weights_only=True)
-        if state["dataset_sha256"]!=manifest["dataset_sha256"]:raise ValueError("Checkpoint/data mismatch")
+        validate_resume_data(state,manifest,args.accept_expanded_data)
         model.load_state_dict(state["model"]);optimizer.load_state_dict(state["optimizer"])
         start,best=state["step"],state["best_validation"]
         torch.set_rng_state(state["cpu_rng"])

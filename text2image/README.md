@@ -61,3 +61,13 @@ python -m text2image.text2stick.generate "Draw a person bending forward and rais
 ```
 
 This is the ordinary-English pixel model. It uses no phrase-to-angle parser or skeleton renderer at inference. See the experiment guide for training, limits, and evaluation.
+
+## Colored stick figures
+
+```powershell
+python -m text2image.stick_colors.generate "Draw a person with their left arm raised." --count 10
+```
+
+The model predicts a 48 x 48 palette image with fixed colors for the head, torso, and four limbs. The offline renderer creates training targets; neural inference predicts pixels directly. The current dataset contains 75,264 training samples, with original holdouts frozen. Generation selects step 11,750; resume continues from step 12,000.
+
+See the [thirty-sample red-arm gallery](stick_colors/README.md#thirty-sample-red-arm-check), [actual training targets](stick_colors/docs/images/red-arm-raised-training-1.png), and [measured results](stick_colors/RESULTS.md). Familiar upright examples sometimes raise the red arm, while the held-out deep-bend/raised-left-arm combination remains unreliable. All gallery outputs are shown without filtering.

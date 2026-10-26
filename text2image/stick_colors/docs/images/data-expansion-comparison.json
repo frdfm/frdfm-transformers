@@ -1,0 +1,78 @@
+{
+  "training_records_before": 18816,
+  "training_records_after": 75264,
+  "variants_per_pose_before": 224,
+  "variants_per_pose_after": 896,
+  "training_poses": 84,
+  "baseline_step": 8000,
+  "selected_step": 11750,
+  "latest_step": 12000,
+  "additional_updates": 4000,
+  "validation_before": 0.05352467404944557,
+  "validation_after": 0.049754571879193896,
+  "parent_dataset_sha256": "f144092430286e98d50ce3cf957ee423eccdc0df33e85141b6f788cf54447a51",
+  "dataset_sha256": "cda64421e3819e7142343acc40b5d0974690d887379d6e72699ed479d097a608",
+  "frozen_files_sha256": {
+    "combined_test-captions.json": "b09823f9e87bb578afbdfb009f29ee28a1ae15cf3e0620ac7de5d2012464cbde",
+    "combined_test.npz": "22153be9ef560ae72ebeb29f3b0fb4e2c5cbbfab132b532665a2c66c787604be",
+    "pose_test-captions.json": "2d862b7490a4f4d5d98de95f120b98250c8227fe98d4e16b836ff37e53f808f2",
+    "pose_test.npz": "6359ff9f2ffd7d10d49700b4a1abe131fb07fb714347d3d9f19d31e701bfc7ac",
+    "pose_val-captions.json": "a53776ff51561ead727acacc22691dec75ce85dc50d7c6365dd7ae572fc35d59",
+    "pose_val.npz": "49cf7b4560ed0d0b3743f6c960b2c893431c67a7bd063f2154470318d287d1a3",
+    "tokenizer.json": "5c0fbc1022b986921f7923ea9d605c67f92a4d4e4cd85c03be42116d54dc88e9",
+    "word_test-captions.json": "bf44d844ab9e29e17a8cf06b8946db01ddb4f2406cf988e4777efa349b9abe57",
+    "word_test.npz": "0ea326bc92627762dd2ec3f89b758df2c891eb401155baf88577fe4f95748240",
+    "word_val-captions.json": "2a068ed4218c590bf6c9803ef4ff2986f25d615ef27b0f5cbad6ae3a4cf9093b",
+    "word_val.npz": "1263a97f2d4a72105a069c3f9921a3079f197156763a7380d8640905be6cb2bd"
+  },
+  "config": {
+    "vocab_size": 468,
+    "width": 96,
+    "text_layers": 2,
+    "pixel_layers": 4,
+    "heads": 4,
+    "mode": "autoregressive",
+    "patch_size": 2,
+    "image_side": 48,
+    "palette_size": 7
+  },
+  "indices": [
+    68,
+    594
+  ],
+  "prompts": [
+    "Please show a person with a body leaning deeply forward, a straight left leg, the right hand hanging down, the left arm lifted up, a bent right leg.",
+    "Could you show a stick figure leaning far forward, with the left leg straight, bending the right knee and with both hands raised above the head."
+  ],
+  "seed": 123,
+  "temperature": 0.8,
+  "guidance": 2.0,
+  "sample_index": 0,
+  "heldout": {
+    "word_test": {
+      "nll_before": 0.04867234675302392,
+      "nll_after": 0.043327857695874716,
+      "color_iou_before": 0.1098038844314078,
+      "color_iou_after": 0.07954139616068713,
+      "connected_before": 0.3333333333333333,
+      "connected_after": 0.25
+    },
+    "pose_test": {
+      "nll_before": 0.06355982227250934,
+      "nll_after": 0.05701295208806793,
+      "color_iou_before": 0.12325362325960339,
+      "color_iou_after": 0.10140411403614417,
+      "connected_before": 0.25,
+      "connected_after": 0.25
+    },
+    "combined_test": {
+      "nll_before": 0.06424076886226733,
+      "nll_after": 0.05750367743894458,
+      "color_iou_before": 0.09481694728066752,
+      "color_iou_after": 0.15185979890466725,
+      "connected_before": 0.16666666666666666,
+      "connected_after": 0.3333333333333333
+    }
+  },
+  "interpretation": "Dataset and additional training updates both changed; not a data-only controlled experiment"
+}
