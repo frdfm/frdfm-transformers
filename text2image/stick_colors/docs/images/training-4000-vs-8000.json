@@ -1,0 +1,61 @@
+{
+  "baseline_step": 4000,
+  "selected_step": 8000,
+  "latest_step": 8000,
+  "seed": 123,
+  "temperature": 0.8,
+  "guidance": 2.0,
+  "indices": [
+    68,
+    594
+  ],
+  "prompts": [
+    "Please show a person with a body leaning deeply forward, a straight left leg, the right hand hanging down, the left arm lifted up, a bent right leg.",
+    "Could you show a stick figure leaning far forward, with the left leg straight, bending the right knee and with both hands raised above the head."
+  ],
+  "sample_index": 0,
+  "dataset_sha256": "f144092430286e98d50ce3cf957ee423eccdc0df33e85141b6f788cf54447a51",
+  "tokenizer_sha256": "5c0fbc1022b986921f7923ea9d605c67f92a4d4e4cd85c03be42116d54dc88e9",
+  "config": {
+    "vocab_size": 468,
+    "width": 96,
+    "text_layers": 2,
+    "pixel_layers": 4,
+    "heads": 4,
+    "mode": "autoregressive",
+    "patch_size": 2,
+    "image_side": 48,
+    "palette_size": 7
+  },
+  "validation_before": 0.0605692673651945,
+  "validation_after": 0.05352467404944557,
+  "heldout": {
+    "word_test": {
+      "nll_before": 0.062257297337055206,
+      "nll_after": 0.04867234675302392,
+      "color_iou_before": 0.10679298385170759,
+      "color_iou_after": 0.1098038844314078,
+      "connected_before": 0.08333333333333333,
+      "connected_after": 0.3333333333333333,
+      "shuffled_color_iou_after": 0.08790878722055319
+    },
+    "pose_test": {
+      "nll_before": 0.0775113794952631,
+      "nll_after": 0.06355982227250934,
+      "color_iou_before": 0.06503539123214075,
+      "color_iou_after": 0.12325362325960339,
+      "connected_before": 0.08333333333333333,
+      "connected_after": 0.25,
+      "shuffled_color_iou_after": 0.09532143032592492
+    },
+    "combined_test": {
+      "nll_before": 0.07696126028895378,
+      "nll_after": 0.06424076886226733,
+      "color_iou_before": 0.06357916959794895,
+      "color_iou_after": 0.09481694728066752,
+      "connected_before": 0.0,
+      "connected_after": 0.16666666666666666,
+      "shuffled_color_iou_after": 0.08667581731132584
+    }
+  }
+}

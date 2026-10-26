@@ -24,6 +24,10 @@ Snapshot: checkpoint update 4,000, sampling seed 123, temperature 0.8, guidance 
 
 [View familiar training targets beside generated samples](docs/images/train-comparison.png). Snapshot prompts, selected records, settings, and diagnostics are preserved in [held-out sample metadata](docs/images/pose_test-comparison.json) and [training sample metadata](docs/images/train-comparison.json). These documentation images are fixed snapshots, so later generation commands will not overwrite them.
 
+### Longer training, unchanged model
+
+The model has now continued to 8,000 updates using the same data, architecture, loss, and optimizer. Validation NLL improved by 11.6%; the exact same held-out prompts show cleaner leg strokes, while raised-arm errors remain. [View the 4,000-versus-8,000 comparison and measurements](RESULTS.md#longer-training-comparison-4000-to-8000-updates). The sample above remains the original 4,000-update snapshot; generation uses the best current checkpoint.
+
 ## Generate and inspect
 
 Run from the repository root in the existing venv:
