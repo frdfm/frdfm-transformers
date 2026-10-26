@@ -1,5 +1,7 @@
 # Revised compositional stick-figure results
 
+**Scope: text-to-angle controls plus a fixed renderer, not pixel generation.** These scores measure pose controls, not generated image quality.
+
 The original whole-caption pooled encoder fit the training combinations but failed the strict held-out pairing test in two of three seeds. Its implementation, checkpoints, raw metrics, and [baseline report](BASELINE_RESULTS.md) are preserved.
 
 ## What changed

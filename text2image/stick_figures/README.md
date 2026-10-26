@@ -1,4 +1,6 @@
-# Stick figures: testing unseen combinations of pose instructions
+# Text-to-pose controls: testing unseen instruction combinations
+
+**This is not pixel generation.** The network predicts five angles; a fixed renderer draws the skeleton. Its clean images must not be presented as learned text-to-image results. The direct pixel experiment is [stick_pixels](../stick_pixels/README.md).
 
 This experiment asks a specific question: **can a small Transformer combine a familiar torso instruction and a familiar arm instruction when that pairing never occurs in training?** It generates a new pose from text. It does not edit an input photograph or preserve a person's identity.
 
