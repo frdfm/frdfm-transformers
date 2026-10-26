@@ -7,6 +7,7 @@ Each dataset experiment has its own package, architecture guide, training code, 
 | [Fashion-MNIST](fashion_mnist/) | Short clothing captions to 14 x 14 or 28 x 28 grayscale images | [Full two-example forward-pass walkthrough and usage](fashion_mnist/README.md) |
 | [Text-to-pose controls](stick_figures/) | Text to pose controls, tested on unseen component pairings | [Dataset, architecture, and evaluation](stick_figures/README.md) |
 | [Stick pixels](stick_pixels/) | Actual text-to-binary-pixel generation, including held-out pose combinations | [Pixel architecture and evaluation](stick_pixels/README.md) |
+| [Text2Stick](text2stick/) | Ordinary English to actual binary pixels, with text encoder and pixel decoder | [Use the trained plain-English model](text2stick/README.md) |
 
 ## Fashion-MNIST
 
@@ -51,3 +52,11 @@ python -m text2image.stick_pixels.evaluate
 ```
 
 The model predicts every pixel, with no angle/joint outputs or skeleton renderer during generation. Do not confuse this with the `stick_figures` text-to-pose experiment.
+
+## Plain-English stick figures
+
+```powershell
+python -m text2image.text2stick.generate "Draw a person bending forward and raising their left hand."
+```
+
+This is the ordinary-English pixel model. It uses no phrase-to-angle parser or skeleton renderer at inference. See the experiment guide for training, limits, and evaluation.
