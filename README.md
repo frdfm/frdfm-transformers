@@ -4,12 +4,22 @@ Local PyTorch experiments for learning how Transformers work. All learn their em
 
 | Experiment | Input -> output | Model | Read more |
 |---|---|---|---|
+| [maze](maze/) | Maze matrix -> complete move sequence | Encoder-decoder Transformer with live Pygame token viewer | [Train and play](maze/README.md) |
 | [en2fr](en2fr/) | English sentence -> French sentence | Encoder-decoder Transformer, 16.65M parameters | [Architecture, training, and common mistakes](en2fr/README.md) |
 | [text2image/fashion_mnist](text2image/fashion_mnist/) | Short clothing caption -> grayscale image | Causal pixel Transformer, 0.90M parameters at 28 x 28 | [Architecture, training, and common mistakes](text2image/fashion_mnist/README.md) |
 | [text2image/stick_figures](text2image/stick_figures/) | Pose instructions -> stick figure, with unseen-combination tests | Small text encoder predicting continuous pose controls | [Dataset and evaluation](text2image/stick_figures/README.md) |
 | [text2image/stick_pixels](text2image/stick_pixels/) | Pose descriptions -> directly generated binary pixels | Autoregressive pixel Transformer | [Pixel-only architecture and tests](text2image/stick_pixels/README.md) |
 | [text2image/text2stick](text2image/text2stick/) | Plain-English descriptions -> directly generated pixels | English encoder and cross-attending pixel decoder | [Generate from English](text2image/text2stick/README.md) |
 | [text2image/stick_colors](text2image/stick_colors/) | English -> colored body-part pixels | Palette-pixel Transformer with color/connectivity diagnostics | [Inspect colored limbs](text2image/stick_colors/README.md) |
+
+## Maze solver sample
+
+The trained Transformer generates moves one token at a time in a Pygame viewer.
+This actual viewer snapshot shows an 11x11 maze solved in 31 moves, followed
+by END, with the generated route and final token probabilities visible.
+See the [maze guide](maze/README.md) for training results and controls.
+
+![Maze Transformer solving an 11x11 maze in the Pygame viewer](maze/preview-large.png)
 
 ## Colored stick-figure sample
 
