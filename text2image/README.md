@@ -5,7 +5,8 @@ Each dataset experiment has its own package, architecture guide, training code, 
 | Dataset experiment | Task | Documentation |
 |---|---|---|
 | [Fashion-MNIST](fashion_mnist/) | Short clothing captions to 14 x 14 or 28 x 28 grayscale images | [Full two-example forward-pass walkthrough and usage](fashion_mnist/README.md) |
-| [Stick figures](stick_figures/) | Text to pose controls, tested on unseen component pairings | [Dataset, architecture, and evaluation](stick_figures/README.md) |
+| [Text-to-pose controls](stick_figures/) | Text to pose controls, tested on unseen component pairings | [Dataset, architecture, and evaluation](stick_figures/README.md) |
+| [Stick pixels](stick_pixels/) | Actual text-to-binary-pixel generation, including held-out pose combinations | [Pixel architecture and evaluation](stick_pixels/README.md) |
 
 ## Fashion-MNIST
 
@@ -40,3 +41,13 @@ python -m text2image.stick_figures.train --architecture factorized --steps 1000 
 ```
 
 This experiment enumerates all 108 defined pose combinations. Training contains 84; validation and test each reserve 12 combinations including an entire unseen component pairing. The Transformer predicts pose controls, and a fixed renderer draws them. See its README for what this establishes and the structural assumptions it supplies.
+
+## Pixel-based stick figures
+
+```powershell
+python -m text2image.stick_pixels.prepare_data
+python -m text2image.stick_pixels.train --steps 2000
+python -m text2image.stick_pixels.evaluate
+```
+
+The model predicts every pixel, with no angle/joint outputs or skeleton renderer during generation. Do not confuse this with the `stick_figures` text-to-pose experiment.
