@@ -1,0 +1,666 @@
+{
+  "selection": "60 fully specified training records with combo left-arm state raised; 3 records per each of 20 training pose combinations",
+  "seed": 42,
+  "records": [
+    {
+      "index": 6168,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "Draw a man. Their right knee is bent. Their left arm is raised. Their left leg is bent at the knee. Their body is straight. Their right hand hangs down."
+    },
+    {
+      "index": 7879,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        1
+      ],
+      "caption": "I want a man with a straight torso, the right knee bent, the right arm lifted up, the left knee bent, the left arm lifted up."
+    },
+    {
+      "index": 7785,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        0
+      ],
+      "caption": "I want a woman with an upright body, with both hands raised above the head, a straight right leg, a bent left leg."
+    },
+    {
+      "index": 55017,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "I want a man with the left arm lifted up, the right hand hanging down, a straight left leg, a slight forward bend, a bent right leg."
+    },
+    {
+      "index": 38814,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "Show a stick figure with the right hand stretched sideways, holding the left hand up, keeping the left knee straight, keeping the body upright while bending the right knee."
+    },
+    {
+      "index": 54549,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "Please show a woman with the right hand hanging down, a body leaning slightly forward, the right knee bent, a straight left leg, the left arm lifted up."
+    },
+    {
+      "index": 36027,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "Draw a man. Their right leg is bent at the knee. Their left hand is up. Their body is upright. Their right arm is down. Their left leg is straight."
+    },
+    {
+      "index": 35396,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "A drawing of a woman with standing with a straight body, a straight left leg, the right knee kept straight, the left hand raised overhead, the right arm lowered."
+    },
+    {
+      "index": 36528,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Make a drawing of a woman with the right arm hanging down, with a bent left knee, keeping the right knee straight, standing upright and with the left arm lifted overhead."
+    },
+    {
+      "index": 6913,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "Please draw a person holding the left hand up, extending the right arm out to the side, keeping the right knee straight, with a bent left knee while standing upright."
+    },
+    {
+      "index": 7310,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        0
+      ],
+      "caption": "Please show a stick figure with a straight right leg, with both hands raised above the head, standing with a straight body, the left knee kept straight."
+    },
+    {
+      "index": 55277,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Please draw a woman holding the left hand up, with a slightly bent body, keeping the right arm down, keeping the right knee straight and bending the left knee."
+    },
+    {
+      "index": 40718,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        0
+      ],
+      "caption": "A drawing of a man with the right hand raised overhead, the left arm lifted up, a straight left leg, standing with a straight body, a straight right leg."
+    },
+    {
+      "index": 55579,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Make a drawing of someone leaning forward a little, keeping the right knee straight, with a bent left knee, lowering the right hand while holding the left hand up."
+    },
+    {
+      "index": 35288,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "I want a man with the left arm lifted up, the right arm lowered, a straight torso, the right knee kept straight, a straight left leg."
+    },
+    {
+      "index": 41161,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        1
+      ],
+      "caption": "Draw a man. Their left knee is straight. They stand upright. Their right knee is bent. With both hands raised above the head."
+    },
+    {
+      "index": 37434,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "Make a drawing of a person bending the left knee, with the right arm hanging down, raising the left arm, standing upright and with a bent right knee."
+    },
+    {
+      "index": 54363,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "Make a drawing of a woman with the left arm lifted overhead, keeping the right arm down, bending forward slightly, keeping the left knee straight while with the right leg straight."
+    },
+    {
+      "index": 57192,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "Draw a man. They bend forward slightly. Their left leg is straight. Their left arm is raised. Their right hand is stretched sideways. Their right leg is bent at the knee."
+    },
+    {
+      "index": 41751,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        0
+      ],
+      "caption": "A drawing of a person with the left arm lifted up, the left knee bent, an upright body, the right knee kept straight, the right hand raised overhead."
+    },
+    {
+      "index": 42593,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        1
+      ],
+      "caption": "Could you show someone raising the left arm, holding the right hand up, standing upright, bending the left knee and bending the right knee."
+    },
+    {
+      "index": 37755,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "Show a man standing straight, keeping the left knee straight, with the right leg straight, extending the right arm out to the side and lifting the left hand overhead."
+    },
+    {
+      "index": 57528,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "A drawing of a stick figure with the right hand extended out to the side, a slightly bent torso, a straight left leg, a bent right leg, the left hand raised overhead."
+    },
+    {
+      "index": 5690,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "Draw someone. Their right leg is bent at the knee. Their left leg is straight. Their right arm is down. Their body is upright. Their left hand is up."
+    },
+    {
+      "index": 58471,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "Draw a woman. Their left knee is bent. Their right arm is out to the side. Their torso is slightly bent. Their left hand is up. Their right leg is bent at the knee."
+    },
+    {
+      "index": 57071,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "A drawing of someone with the left knee kept straight, the right hand extended out to the side, a straight right leg, a slight forward bend, the left arm lifted up."
+    },
+    {
+      "index": 38645,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "Could you show a stick figure keeping the left knee straight, with the right hand stretched sideways, keeping the body upright, raising the left arm and with a bent right knee."
+    },
+    {
+      "index": 58284,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "Please show a woman with a slightly bent torso, the left knee bent, the right hand extended out to the side, the left hand raised overhead, a straight right leg."
+    },
+    {
+      "index": 12504,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "A drawing of a man with the right knee bent, the right hand hanging down, the left knee bent, a slightly bent torso, the left arm lifted up."
+    },
+    {
+      "index": 38427,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "Draw a stick figure with the right hand stretched sideways, holding the left hand up, bending the right knee, standing upright and with the left leg straight."
+    },
+    {
+      "index": 57949,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "Show a woman bending the left knee, with the right leg straight, holding the left hand up, bending forward slightly while stretching the right arm sideways."
+    },
+    {
+      "index": 37867,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "Please show a person with the left hand raised overhead, an upright body, the right knee kept straight, the right hand extended out to the side, a straight left leg."
+    },
+    {
+      "index": 40195,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "Could you show a man standing upright, with a bent left knee, holding the left hand up, bending the right knee and extending the right arm out to the side."
+    },
+    {
+      "index": 54498,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "I want someone with a bent right leg, a body leaning slightly forward, the left arm lifted up, a straight left leg, the right hand hanging down."
+    },
+    {
+      "index": 6802,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "Draw a stick figure. Their left knee is bent. Their body is upright. Their right hand is stretched sideways. Their right knee is straight. Their left arm is raised."
+    },
+    {
+      "index": 40767,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        0
+      ],
+      "caption": "I want someone with the left knee kept straight, with both hands raised above the head, a straight torso, the right knee kept straight."
+    },
+    {
+      "index": 58867,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "Draw a stick figure. Their body leans forward a little. Their left leg is bent at the knee. Their left arm is raised. Their right arm is out to the side. Their right knee is bent."
+    },
+    {
+      "index": 39153,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "I want a woman with the right knee kept straight, the left hand raised overhead, standing with a straight body, the right arm held sideways, a bent left leg."
+    },
+    {
+      "index": 12261,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Draw a person. Their right arm is down. Their left hand is up. Their left knee is bent. Their right knee is straight. Their torso is slightly bent."
+    },
+    {
+      "index": 55825,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "Could you show a man with a bent left knee, lowering the right hand, bending the right knee, raising the left arm and leaning forward a little."
+    },
+    {
+      "index": 12682,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "Draw a woman. Their right hand is stretched sideways. Their left hand is up. They bend forward slightly. Their right knee is straight. Their left knee is straight."
+    },
+    {
+      "index": 53855,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "Draw a stick figure with the left leg straight, lifting the left hand overhead, with the right leg straight, keeping the right arm down and leaning forward a little."
+    },
+    {
+      "index": 36717,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Draw a stick figure. Their body is upright. Their left knee is bent. Their left hand is up. Their right arm is down. Their right knee is straight."
+    },
+    {
+      "index": 6443,
+      "combo": [
+        0,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "Draw a man. Their left hand is up. Their body is upright. Their right knee is straight. Their right hand is stretched sideways. Their left knee is straight."
+    },
+    {
+      "index": 41635,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        1
+      ],
+      "caption": "Draw a person holding the left hand up, holding the right hand up, standing straight, with the left leg straight and with a bent right knee."
+    },
+    {
+      "index": 54209,
+      "combo": [
+        1,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "I want a woman with the left knee kept straight, a slightly bent torso, the right knee kept straight, the left arm lifted up, the right arm lowered."
+    },
+    {
+      "index": 37185,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "Please show a stick figure with a bent right leg, the right hand hanging down, standing with a straight body, a bent left leg, the left arm lifted up."
+    },
+    {
+      "index": 58324,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        0
+      ],
+      "caption": "Show a woman holding the left hand up, bending the left knee, keeping the right knee straight, with a slightly bent body while with the right hand stretched sideways."
+    },
+    {
+      "index": 40170,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "Draw a stick figure. Their right hand is stretched sideways. Their right leg is bent at the knee. Their body is upright. Their left knee is bent. Their left arm is raised."
+    },
+    {
+      "index": 12861,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        1
+      ],
+      "caption": "Draw a stick figure keeping the left knee straight, with a slightly bent body, lifting the left hand overhead, with the right hand stretched sideways and bending the right knee."
+    },
+    {
+      "index": 41564,
+      "combo": [
+        0,
+        2,
+        2,
+        0,
+        1
+      ],
+      "caption": "I want a person with the left knee kept straight, the right knee bent, the left hand raised overhead, the right hand raised overhead, a straight torso."
+    },
+    {
+      "index": 42094,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        0
+      ],
+      "caption": "Could you show a person keeping the right knee straight, bending the left knee, raising the right arm, lifting the left hand overhead while keeping the body upright."
+    },
+    {
+      "index": 58509,
+      "combo": [
+        1,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "I want a woman with a slightly bent torso, the left arm lifted up, a bent left leg, a bent right leg, the right hand extended out to the side."
+    },
+    {
+      "index": 55962,
+      "combo": [
+        1,
+        2,
+        0,
+        1,
+        1
+      ],
+      "caption": "A drawing of a man with a bent left leg, the right hand hanging down, a bent right leg, the left hand raised overhead, a slight forward bend."
+    },
+    {
+      "index": 5451,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "caption": "A drawing of a man with a straight left leg, standing with a straight body, the left hand raised overhead, a straight right leg, the right arm lowered."
+    },
+    {
+      "index": 56603,
+      "combo": [
+        1,
+        2,
+        1,
+        0,
+        0
+      ],
+      "caption": "Please show a stick figure with a straight left leg, the left arm lifted up, a straight right leg, a slightly bent torso, the right arm held sideways."
+    },
+    {
+      "index": 7978,
+      "combo": [
+        0,
+        2,
+        2,
+        1,
+        1
+      ],
+      "caption": "Make a drawing of a woman with both hands raised above the head, with a bent right knee, standing straight while with a bent left knee."
+    },
+    {
+      "index": 36934,
+      "combo": [
+        0,
+        2,
+        0,
+        1,
+        0
+      ],
+      "caption": "Draw someone with the left arm lifted overhead, keeping the right knee straight, with the right arm hanging down, with a bent left knee while standing upright."
+    },
+    {
+      "index": 7002,
+      "combo": [
+        0,
+        2,
+        1,
+        1,
+        1
+      ],
+      "caption": "Please draw a woman standing upright, extending the right arm out to the side, bending the right knee, holding the left hand up while with a bent left knee."
+    },
+    {
+      "index": 36168,
+      "combo": [
+        0,
+        2,
+        0,
+        0,
+        1
+      ],
+      "caption": "Please show a person with standing with a straight body, the left arm lifted up, the right arm lowered, a straight left leg, the right knee bent."
+    }
+  ]
+}

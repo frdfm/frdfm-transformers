@@ -86,6 +86,7 @@ class ColorTests(unittest.TestCase):
                     self.assertEqual(set(np.unique(raster)),set(range(7)))
                     self.assertTrue(is_connected(raster))
                 images[split]={row.tobytes() for row in pixels}
+                self.assertEqual(len(images[split]),len(pixels))
                 combos[split]=set(map(tuple,data['combos'].tolist()))
         for split in ('word_val','word_test','pose_val','pose_test','combined_test'):
             self.assertFalse(images['train']&images[split])

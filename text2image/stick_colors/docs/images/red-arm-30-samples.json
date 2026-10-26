@@ -1,0 +1,19 @@
+{
+  "prompts": [
+    "Please show a person with a body leaning deeply forward, a straight left leg, the right hand hanging down, the left arm lifted up, a bent right leg.",
+    "Could you show a stick figure leaning far forward, with the left leg straight, bending the right knee and with both hands raised above the head.",
+    "Draw a person. Their left arm is raised. They stand upright. Their right leg is straight. Their right arm is down. Their left leg is straight."
+  ],
+  "labels": [
+    "held-out-left-arm-up",
+    "held-out-both-arms-up",
+    "familiar-upright-left-arm-up"
+  ],
+  "samples_per_prompt": 10,
+  "checkpoint_step": 11750,
+  "seed": 2026,
+  "temperature": 0.8,
+  "guidance": 2.0,
+  "control_training_index": 5376,
+  "selection": "All samples shown without filtering"
+}

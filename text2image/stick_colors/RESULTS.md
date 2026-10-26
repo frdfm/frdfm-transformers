@@ -2,11 +2,45 @@
 
 The colors make part identity and fragmentation visible. They do **not** show that pose following is solved. The model often puts approximately appropriate colors in head/body/leg regions, but emits fragments, color spill, and incorrect limb poses.
 
+## Larger sampling check: thirty unfiltered outputs
+
+At checkpoint 11,750, one batch generated ten samples for each of the two previously shown held-out prompts, plus ten for an actual familiar upright training caption. Sampling used seed 2026, temperature 0.8, and guidance 2. Every result is retained in the [README gallery](README.md#thirty-sample-red-arm-check), with [prompts and metadata](docs/images/red-arm-30-samples.json).
+
+Visual inspection found several raised red arms in the upright control, but no convincing correctly raised red arm in the twenty deep-bend samples. The blue arm often rises in the both-arms prompt while the red arm stays down. This suggests a composition weakness rather than an absolute inability to generate a raised red arm. The control differs in wording and other pose details, and this is qualitative inspection, not a measured success-rate claim.
+
+We also inspected 60 genuine raised-red-arm training targets, balanced across 20 training combinations. The expanded training set contains 12,600 fully specified examples satisfying that annotation. Their targets look consistent; the deep-bend/raised-left-arm pairing remains intentionally absent. The [target gallery and record metadata](README.md#thirty-sample-red-arm-check) are preserved as documentation assets.
+
+No further training or model changes were made for this sampling check. The experiment is left at its current checkpoint for now.
+
+## Training-data expansion: 18,816 to 75,264 samples
+
+The training set now contains **896 variations for each of the same 84 poses**, up from 224. It adds 56,448 unique colored drawings with randomized captions. Original training rows are preserved exactly. All wording/pose validation and test files, their caption files, and the tokenizer remain byte-for-byte unchanged. No held-out pose combination entered training. The old data are archived under `data/archives/<parent-hash>/`.
+
+The 8,000-step checkpoint was resumed with `--accept-expanded-data` for 4,000 additional updates. That explicit transition verifies the parent dataset manifest, retained training prefix, identical pose set, and frozen-file checksums before retaining the optimizer and absolute LR schedule. Model architecture and loss are unchanged. The expanded set is loaded with compact raw-pixel storage and chunked token packing to avoid unnecessary host RAM use.
+
+The new phase took about 185 seconds; peak allocated CUDA memory remained 0.89 GiB. Best validation selected step 11,750, with NLL 0.04975, down about 7.0% from 0.05352. Generation uses that checkpoint. The latest resumable step is 12,000. Baseline weights and measurements remain under the `baseline_step_8000` directories.
+
+This phase sampled 64,000 image targets with replacement from the larger set, about 0.85 average passes. It did not necessarily visit every new image. This experiment changes both dataset size and training duration, so it cannot isolate the benefit of more data alone.
+
+| Frozen holdout | NLL per pixel: before -> after | Part-color IoU: before -> after | Fully connected: before -> after |
+|---|---:|---:|---:|
+| word_test | 0.04867 -> 0.04333 | 0.10980 -> 0.07954 | 4/12 -> 3/12 |
+| pose_test | 0.06356 -> 0.05701 | 0.12325 -> 0.10140 | 3/12 -> 3/12 |
+| combined_test | 0.06424 -> 0.05750 | 0.09482 -> 0.15186 | 2/12 -> 4/12 |
+
+The same 12 generated examples and sampling settings were used per split. Likelihood improved across full holdouts. Generated color overlap improved on the combined wording/pose sample but worsened on the separate wording and pose samples; connectivity was also mixed. More examples plus additional training have **not** reliably solved pose following.
+
+![Frozen target, 8000-step baseline, and best checkpoint after expanding training data](docs/images/data-expansion-comparison.png)
+
+The image uses the same two held-out prompts, seed 123, temperature 0.8, guidance 2, reference images, and first sample from each checkpoint. The raised-left-arm error is still visible. [Metadata and data identities](docs/images/data-expansion-comparison.json) are saved with the snapshot.
+
+All **30 regression tests** passed, including an actual append-only expansion fixture, preservation of every original training field and frozen file, and rejection of changed holdouts, original rows, or unrelated parent datasets. The full real-data migration check also passed.
+
 ## Longer-training comparison: 4,000 to 8,000 updates
 
 The existing model was resumed for 4,000 additional updates, with batch size 16. Dataset and tokenizer hashes, architecture, loss, optimizer, and sampling settings were kept unchanged. The absolute-step learning-rate schedule continued without restarting warmup. The additional run took about 178 seconds, with peak allocated GPU memory still 0.89 GiB.
 
-Generation now loads the validation-selected update 8,000. The resumable latest checkpoint is also update 8,000. Baseline weights are preserved under `checkpoints/baseline_step_4000/`; its measurements and raw outputs are under `results/baseline_step_4000/` and `samples/baseline_step_4000/`.
+That earlier run selected update 8,000, and its resumable latest checkpoint was also update 8,000. Baseline weights are preserved under `checkpoints/baseline_step_4000/`; its measurements and raw outputs are under `results/baseline_step_4000/` and `samples/baseline_step_4000/`.
 
 Validation NLL decreased from 0.06057 to 0.05352, an 11.6% reduction. The model has sampled 128,000 training examples in total: about 6.8 exposures per training record on average, compared with 3.4 before. No new examples were added.
 

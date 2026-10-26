@@ -24,9 +24,45 @@ Snapshot: checkpoint update 4,000, sampling seed 123, temperature 0.8, guidance 
 
 [View familiar training targets beside generated samples](docs/images/train-comparison.png). Snapshot prompts, selected records, settings, and diagnostics are preserved in [held-out sample metadata](docs/images/pose_test-comparison.json) and [training sample metadata](docs/images/train-comparison.json). These documentation images are fixed snapshots, so later generation commands will not overwrite them.
 
-### Longer training, unchanged model
+### Training progress
 
-The model has now continued to 8,000 updates using the same data, architecture, loss, and optimizer. Validation NLL improved by 11.6%; the exact same held-out prompts show cleaner leg strokes, while raised-arm errors remain. [View the 4,000-versus-8,000 comparison and measurements](RESULTS.md#longer-training-comparison-4000-to-8000-updates). The sample above remains the original 4,000-update snapshot; generation uses the best current checkpoint.
+The earlier unchanged-data run continued from 4,000 to 8,000 updates; [its fixed-seed comparison](RESULTS.md#longer-training-comparison-4000-to-8000-updates) is preserved. Training data have since expanded fourfold to **75,264 samples**, with the tokenizer and every holdout file unchanged. After another 4,000 updates, generation uses best-validation step **11,750**; resume uses latest step **12,000**. [See the data-expansion comparison and mixed image-quality results](RESULTS.md#training-data-expansion-18816-to-75264-samples). The sample above remains the original 4,000-update snapshot.
+
+## Thirty-sample red-arm check
+
+The current checkpoint can produce recognizable colored figures, but pose following is uneven. To check whether the earlier two-sample examples were simply unlucky, we generated **ten samples per prompt**, showing all thirty without filtering:
+
+| Prompt group | Examples | Observation |
+|---|---:|---|
+| Deep bend, red left arm raised | 10 | No convincing correctly raised red arm in this batch |
+| Deep bend, both arms raised | 10 | Blue arm often extends upward; red arm commonly remains down |
+| Familiar upright pose, red left arm raised | 10 | Several examples visibly raise the red arm |
+
+The result suggests difficulty combining deep bending with a raised left arm, rather than an inability to draw a raised red arm at all. That pairing was deliberately excluded from training. The upright control also uses different wording and other pose details, so this is a qualitative diagnostic, not an isolated causal test or a formal pose-accuracy measurement.
+
+### Familiar upright control: ten generated samples
+
+![All ten upright samples requesting a raised red arm](docs/images/ten-samples-familiar-upright-left-arm-up.png)
+
+### Held-out deep bend and raised left arm: ten generated samples
+
+![All ten deep-bend samples requesting a raised red arm](docs/images/ten-samples-held-out-left-arm-up.png)
+
+### Held-out deep bend and both arms raised: ten generated samples
+
+![All ten deep-bend samples requesting both arms raised](docs/images/ten-samples-held-out-both-arms-up.png)
+
+Snapshot: selected checkpoint 11,750; sampling seed 2026; temperature 0.8; guidance 2. All thirty predictions came from one batch. [Exact prompts and sampling metadata](docs/images/red-arm-30-samples.json) are preserved alongside these fixed images.
+
+For comparison, inspect **60 actual training targets with the red arm raised**: [examples 1-30](docs/images/red-arm-raised-training-1.png), [examples 31-60](docs/images/red-arm-raised-training-2.png), and [their full captions/record IDs](docs/images/red-arm-raised-training.json). They cover 20 training combinations, with three drawings per combination. The expanded set contains 12,600 fully specified training examples labeled with a raised left arm; none pairs that state with a deep torso bend.
+
+To generate a fresh batch of ten:
+
+```powershell
+python -m text2image.stick_colors.generate "Draw a person. Their left arm is raised. They stand upright. Their right leg is straight. Their right arm is down. Their left leg is straight." --count 10
+```
+
+The current experiment is left at this checkpoint for now. The snapshots document what it learned and the remaining composition errors; no further model changes are included in this documentation update.
 
 ## Generate and inspect
 
@@ -88,12 +124,14 @@ There are 108 pose combinations. Training has 84; pose validation and test each 
 
 | Split | Image/caption records |
 |---|---:|
-| train | 18,816 |
+| train | 75,264 (896 variations for each of 84 poses) |
 | word_val | 1,344 |
 | word_test | 1,344 |
 | pose_val | 768 |
 | pose_test | 768 |
 | combined_test | 768 |
+
+The original training set contained 18,816 records (224 variations per pose). An append-only expansion adds 56,448 new drawings and captions, for four times as many training examples. Original rows remain at exactly the same indices. The tokenizer, wording holdouts, pose holdouts, and their files remain byte-for-byte unchanged. The reserved combinations are not added to training.
 
 `combined_test` reuses pose-test reference images with separately held-out wording. No independent split duplicates a training raster. Train/validation/test pose combinations are assigned before rendering variations.
 
@@ -113,16 +151,35 @@ The report includes each part separately:
 
 Target diagnostics are reported alongside generated diagnostics because valid occlusion and downsampling affect visible part connectivity. Color IoU is sensitive to legitimate style differences; contact alone does not establish correct pose. Shuffled reference alignment and mismatched-caption likelihood help distinguish some text conditioning from a generic colored figure prior. These small synthetic holdouts are development diagnostics, not an untouched research benchmark.
 
+## Expand the training set
+
+```powershell
+python -m text2image.stick_colors.expand_data --variants-per-pose 896
+```
+
+This command requires an existing prepared dataset. It appends new, unique colored rasters with randomized captions to each existing training pose. It rejects duplicates against both training and held-out images, disconnected targets, and missing colors. It archives the previous data under `data/archives/<dataset-hash>/`, preserves the original training prefix, and freezes every evaluation/tokenizer file. Repeating the same target count is rejected; use a larger count for a further expansion.
+
+Ordinary resume rejects a changed dataset. To deliberately continue the old checkpoint on this verified expansion, run:
+
+```powershell
+python -m text2image.stick_colors.train --resume --accept-expanded-data --steps 4000 --batch-size 16
+```
+
+The explicit option is accepted only if the expanded dataset directly descends from the checkpoint dataset, the old training arrays are retained exactly, the pose combinations are unchanged, and tokenizer/holdout checksums match their archived originals. The optimizer, weights, and absolute LR step continue. After the first new checkpoint records the new dataset identity, subsequent resumes use normal `--resume`.
+
+This run changes the data and adds training updates, so before/after images are an exploratory comparison rather than a controlled proof that extra data alone caused a change.
+
 ## Reproduce or resume
 
 ```powershell
 python -m text2image.stick_colors.prepare_data
+python -m text2image.stick_colors.expand_data --variants-per-pose 896
 python -m text2image.stick_colors.preview_data
 python -m text2image.stick_colors.train --steps 4000 --batch-size 16
 python -m text2image.stick_colors.train --resume --steps 2000
-python -m unittest -v text2image.stick_colors.test_model
+python -m unittest -v text2image.stick_colors.test_model text2image.stick_colors.test_expansion
 ```
 
-Preparation replaces this experiment's data and tokenizer. Fresh training replaces its checkpoints. Resume requires matching data and restores the optimizer, absolute step, and saved random state. LR warms up for 200 updates to 0.0005 and then follows absolute-step inverse-square-root decay. Generation loads best-validation `checkpoints/model.pt`; resume loads `checkpoints/latest.pt`.
+Base preparation creates 224 variations per training pose and replaces this experiment's data and tokenizer; expansion then raises the count while keeping its holdouts/tokenizer frozen. Fresh training replaces its checkpoints. Resume requires matching data and restores the optimizer, absolute step, and saved random state. LR warms up for 200 updates to 0.0005 and then follows absolute-step inverse-square-root decay. Generation loads best-validation `checkpoints/model.pt`; resume loads `checkpoints/latest.pt`.
 
 All earlier binary experiments remain in their own directories. See [RESULTS.md](RESULTS.md) for the measured local run and its limitations.

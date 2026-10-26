@@ -19,6 +19,8 @@ English prompts to colored image pixels, trained locally from scratch. **Left: h
 
 From checkpoint update 4,000. See the [colored experiment guide](text2image/stick_colors/README.md#sample-outputs) for the training-sample comparison, generation commands, and measured results.
 
+The latest colored model uses 75,264 training samples and the validation-selected checkpoint at step 11,750 (latest resumable step 12,000). A [thirty-sample gallery](text2image/stick_colors/README.md#thirty-sample-red-arm-check) shows that the red arm can rise in familiar upright poses, while deep bending with a raised red arm remains unreliable. The gallery includes all outputs and links to 60 actual raised-red-arm training targets.
+
 A **token** is one item represented by an integer: a text piece for the translator, or a caption word or pixel brightness for the image model. A **Transformer** processes sequences of these items using attention, which learns which earlier or input positions provide useful information. The translation and Fashion-MNIST models use **next-token prediction**. The stick-figure experiment instead predicts continuous pose controls from the complete text and tests held-out combinations. The translator predicts the next French subword while attending to English. The image model predicts the next grayscale pixel after reading a caption and preceding pixels.
 
 ## Environment and commands
