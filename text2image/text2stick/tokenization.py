@@ -5,9 +5,12 @@ from tokenizers import Tokenizer
 HERE=Path(__file__).resolve().parent
 MAX_TEXT=160
 PAD=0
-SIDE=24
+SIDE=48
 PIXELS=SIDE*SIDE
-PIXEL_BOS=2
+PATCH=2
+IMAGE_TOKENS=(SIDE//PATCH)**2
+PIXEL_CLASSES=2**(PATCH*PATCH)
+PIXEL_BOS=PIXEL_CLASSES
 
 
 def load_tokenizer():
