@@ -5,6 +5,8 @@ Local PyTorch experiments for learning how Transformers work. All learn their em
 | Experiment | Input -> output | Model | Read more |
 |---|---|---|---|
 | [maze](maze/) | Maze matrix -> complete move sequence | Encoder-decoder Transformer with live Pygame token viewer | [Train and play](maze/README.md) |
+| [pong](pong/) | Numeric screen matrix history -> next 10 paddle moves | Encoder-decoder Transformer; execute the action queue before predicting again | [Train and play](pong/README.md) |
+| [snake](snake/) | Numeric board history -> next 10 Snake moves | Encoder-decoder Transformer with a live action queue and projected path | [Train and play](snake/README.md) |
 | [en2fr](en2fr/) | English sentence -> French sentence | Encoder-decoder Transformer, 16.65M parameters | [Architecture, training, and common mistakes](en2fr/README.md) |
 | [text2image/fashion_mnist](text2image/fashion_mnist/) | Short clothing caption -> grayscale image | Causal pixel Transformer, 0.90M parameters at 28 x 28 | [Architecture, training, and common mistakes](text2image/fashion_mnist/README.md) |
 | [text2image/stick_figures](text2image/stick_figures/) | Pose instructions -> stick figure, with unseen-combination tests | Small text encoder predicting continuous pose controls | [Dataset and evaluation](text2image/stick_figures/README.md) |
@@ -42,6 +44,8 @@ Dependencies:
 | Experiment | Python packages |
 |---|---|
 | `en2fr` | `torch`, `numpy`, `datasets`, `tokenizers` |
+| `pong` | `torch`, `numpy`, `pygame` |
+| `snake` | `torch`, `numpy`, `pygame` |
 | `text2image` | `torch`, `numpy`, `Pillow`; `tokenizers` for ordinary-English experiments |
 
 The development environment is Python 3.11 with CUDA-enabled PyTorch on an RTX 3060 with 12 GB VRAM. Both experiments select CUDA when available and otherwise use CPU, which is slower. The translator enables BF16 whenever CUDA is selected; it currently assumes BF16-capable hardware.
