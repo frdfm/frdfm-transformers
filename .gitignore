@@ -189,3 +189,6 @@ __py*
 checkpoints
 data
 logs
+
+
+*.lnk
